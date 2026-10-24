@@ -1,0 +1,536 @@
+[
+  {
+    "schemaVersion": 1,
+    "id": "starter",
+    "title": {
+      "en": "Starter pack",
+      "id": "Paket pemula"
+    },
+    "author": "ffrizzy",
+    "unlockStars": 0,
+    "accent": "green",
+    "description": {
+      "en": "Gentle singles and friendly shapes. A good place to breathe.",
+      "id": "Angka tunggal yang lembut. Tempat yang baik untuk bernapas."
+    },
+    "puzzles": [
+      {
+        "id": "pack:starter:01",
+        "title": {
+          "en": "First steps",
+          "id": "Langkah pertama"
+        },
+        "givens": "109560208000089700020710965910850040004602100060031029891025070006140000205076301",
+        "solution": "179564238653289714428713965912857643384692157567431829891325476736148592245976381",
+        "tier": "cozy",
+        "gradeScore": 37,
+        "techniques": {
+          "nakedSingle": 37
+        },
+        "notes": {
+          "en": "Cozy logic, hand-checked for a single solution.",
+          "id": "Logika cozy, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:starter:02",
+        "title": {
+          "en": "Warm light",
+          "id": "Cahaya hangat"
+        },
+        "givens": "013009070700052401050713600100905064960201085820304009001596020208430006070100940",
+        "solution": "613849572789652431452713698137985264964271385825364719341596827298437156576128943",
+        "tier": "cozy",
+        "gradeScore": 37,
+        "techniques": {
+          "nakedSingle": 37
+        },
+        "notes": {
+          "en": "Cozy logic, hand-checked for a single solution.",
+          "id": "Logika cozy, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:starter:03",
+        "title": {
+          "en": "Slow morning",
+          "id": "Pagi pelan"
+        },
+        "givens": "020050000609201403004006090061590300708604905005032680090100800402803509000020060",
+        "solution": "823459716679281453154376298261598347738614925945732681596147832412863579387925164",
+        "tier": "easy",
+        "gradeScore": 47,
+        "techniques": {
+          "nakedSingle": 39,
+          "hiddenSingle": 4
+        },
+        "notes": {
+          "en": "Easy logic, hand-checked for a single solution.",
+          "id": "Logika easy, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:starter:04",
+        "title": {
+          "en": "Little puzzle",
+          "id": "Teka-teki kecil"
+        },
+        "givens": "460000870000001635005068012000680900607409203004025000710890500849100000056000098",
+        "solution": "461532879278941635935768412523687941687419253194325786712893564849156327356274198",
+        "tier": "easy",
+        "gradeScore": 48,
+        "techniques": {
+          "nakedSingle": 38,
+          "hiddenSingle": 5
+        },
+        "notes": {
+          "en": "Easy logic, hand-checked for a single solution.",
+          "id": "Logika easy, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:starter:05",
+        "title": {
+          "en": "Soft landing",
+          "id": "Pendaratan lembut"
+        },
+        "givens": "002104080078026010100803000860901040020637090030208061000405006080310450050700100",
+        "solution": "692174583378526914145893627867951342421637895539248761913485276786312459254769138",
+        "tier": "easy",
+        "gradeScore": 48,
+        "techniques": {
+          "nakedSingle": 38,
+          "hiddenSingle": 5
+        },
+        "notes": {
+          "en": "Easy logic, hand-checked for a single solution.",
+          "id": "Logika easy, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:starter:06",
+        "title": {
+          "en": "Bubble bath",
+          "id": "Mandi gelembung"
+        },
+        "givens": "000108420000027080281400003192654030067801290050279614300006942010980000026703000",
+        "solution": "735168429649327581281495763192654837467831295853279614378516942514982376926743158",
+        "tier": "cozy",
+        "gradeScore": 37,
+        "techniques": {
+          "nakedSingle": 37
+        },
+        "notes": {
+          "en": "Cozy logic, hand-checked for a single solution.",
+          "id": "Logika cozy, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:starter:07",
+        "title": {
+          "en": "Window seat",
+          "id": "Duduk di jendela"
+        },
+        "givens": "050089400209100700600200091004018070107503609090670800970002004005001908003490050",
+        "solution": "751389426249165783638247591564918372187523649392674815976852134425731968813496257",
+        "tier": "easy",
+        "gradeScore": 45,
+        "techniques": {
+          "nakedSingle": 41,
+          "hiddenSingle": 2
+        },
+        "notes": {
+          "en": "Easy logic, hand-checked for a single solution.",
+          "id": "Logika easy, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:starter:08",
+        "title": {
+          "en": "Easy does it",
+          "id": "Pelan-pelan"
+        },
+        "givens": "010090862072006001009820457160579000054000710000142036386015900500900620927030080",
+        "solution": "415793862872456391639821457163579248254368719798142536386215974541987623927634185",
+        "tier": "cozy",
+        "gradeScore": 37,
+        "techniques": {
+          "nakedSingle": 37
+        },
+        "notes": {
+          "en": "Cozy logic, hand-checked for a single solution.",
+          "id": "Logika cozy, diperiksa untuk satu solusi."
+        }
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "id": "focus",
+    "title": {
+      "en": "Focus pack",
+      "id": "Paket fokus"
+    },
+    "author": "ffrizzy",
+    "unlockStars": 10,
+    "accent": "blue",
+    "description": {
+      "en": "Pairs and pointing. The grid asks you to lean in a little.",
+      "id": "Pasangan dan penunjuk. Papan meminta perhatian sedikit lebih."
+    },
+    "puzzles": [
+      {
+        "id": "pack:focus:01",
+        "title": {
+          "en": "Sharp pencil",
+          "id": "Pensil tajam"
+        },
+        "givens": "060400900000500030700020865807052000400706008000830701573040006080005000002008050",
+        "solution": "365487912928561437714923865897152643431796528256834791573249186689315274142678359",
+        "tier": "medium",
+        "gradeScore": 70,
+        "techniques": {
+          "hiddenSingle": 17,
+          "nakedSingle": 32,
+          "pointing": 1
+        },
+        "notes": {
+          "en": "Medium logic, hand-checked for a single solution.",
+          "id": "Logika medium, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:focus:02",
+        "title": {
+          "en": "Quiet focus",
+          "id": "Fokus tenang"
+        },
+        "givens": "590000060001060580608005700800049007007000300900130008006200804089050200070000035",
+        "solution": "592378461741962583638415792863549127417826359925137648156293874389754216274681935",
+        "tier": "medium",
+        "gradeScore": 62,
+        "techniques": {
+          "hiddenSingle": 9,
+          "nakedSingle": 40,
+          "pointing": 1
+        },
+        "notes": {
+          "en": "Medium logic, hand-checked for a single solution.",
+          "id": "Logika medium, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:focus:03",
+        "title": {
+          "en": "Pointing north",
+          "id": "Menunjuk utara"
+        },
+        "givens": "060004020003090004000207500000105683304000107516803000005402000600030200020700010",
+        "solution": "867354921253691874149287536792145683384926157516873492935412768671538249428769315",
+        "tier": "medium",
+        "gradeScore": 57,
+        "techniques": {
+          "hiddenSingle": 8,
+          "nakedSingle": 41
+        },
+        "notes": {
+          "en": "Medium logic, hand-checked for a single solution.",
+          "id": "Logika medium, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:focus:04",
+        "title": {
+          "en": "Small deduction",
+          "id": "Deduksi kecil"
+        },
+        "givens": "040380061002001005006000000803020050010000020090050108000000900900500600620074080",
+        "solution": "549382761372461895186795234863127459715849326294653178458236917937518642621974583",
+        "tier": "hard",
+        "gradeScore": 80,
+        "techniques": {
+          "nakedSingle": 45,
+          "hiddenSingle": 8,
+          "pointing": 2,
+          "nakedTriple": 1
+        },
+        "notes": {
+          "en": "Hard logic, hand-checked for a single solution.",
+          "id": "Logika hard, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:focus:05",
+        "title": {
+          "en": "Steady hands",
+          "id": "Tangan mantap"
+        },
+        "givens": "000300178800060000004107060300805002080203040100706005010508300000030001953001000",
+        "solution": "296354178871962453534187269347895612685213947129746835412578396768439521953621784",
+        "tier": "medium",
+        "gradeScore": 66,
+        "techniques": {
+          "hiddenSingle": 17,
+          "nakedSingle": 32
+        },
+        "notes": {
+          "en": "Medium logic, hand-checked for a single solution.",
+          "id": "Logika medium, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:focus:06",
+        "title": {
+          "en": "Lined paper",
+          "id": "Kertas bergaris"
+        },
+        "givens": "000035000050082001000100390000019003710000064300460000082006000500340020000820000",
+        "solution": "147935286953682471826174395264719853718253964395468712482596137579341628631827549",
+        "tier": "hard",
+        "gradeScore": 88,
+        "techniques": {
+          "nakedSingle": 48,
+          "hiddenSingle": 5,
+          "pointing": 4,
+          "nakedPair": 1,
+          "hiddenPair": 1
+        },
+        "notes": {
+          "en": "Hard logic, hand-checked for a single solution.",
+          "id": "Logika hard, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:focus:07",
+        "title": {
+          "en": "Tea break",
+          "id": "Jeda teh"
+        },
+        "givens": "040000000035200000607804500200100053301608402570009008006402305000001240000000090",
+        "solution": "849735621135296784627814539268147953391658472574329168986472315753981246412563897",
+        "tier": "medium",
+        "gradeScore": 67,
+        "techniques": {
+          "nakedSingle": 45,
+          "hiddenSingle": 4,
+          "pointing": 2,
+          "nakedPair": 1
+        },
+        "notes": {
+          "en": "Medium logic, hand-checked for a single solution.",
+          "id": "Logika medium, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:focus:08",
+        "title": {
+          "en": "Think twice",
+          "id": "Pikir dua kali"
+        },
+        "givens": "000000000900050801068001703000830070009020100020067000201600980307090605000000000",
+        "solution": "143782596972356841568941723615839472739425168824167359251673984387294615496518237",
+        "tier": "hard",
+        "gradeScore": 76,
+        "techniques": {
+          "nakedSingle": 48,
+          "hiddenSingle": 5,
+          "pointing": 3,
+          "nakedPair": 1
+        },
+        "notes": {
+          "en": "Hard logic, hand-checked for a single solution.",
+          "id": "Logika hard, diperiksa untuk satu solusi."
+        }
+      }
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "id": "masterclass",
+    "title": {
+      "en": "Masterclass",
+      "id": "Kelas master"
+    },
+    "author": "ffrizzy",
+    "unlockStars": 30,
+    "accent": "purple",
+    "description": {
+      "en": "Wings, triples and a wide-open grid. For the patient solver.",
+      "id": "Sayap, trio, dan papan lapang. Untuk pemecah yang sabar."
+    },
+    "puzzles": [
+      {
+        "id": "pack:masterclass:01",
+        "title": {
+          "en": "X marks the spot",
+          "id": "Tanda X"
+        },
+        "givens": "020000030430270000000100000300600570500000008081003006000002000000841029060000040",
+        "solution": "125986734438275961697134285349618572576429318281753496914362857753841629862597143",
+        "tier": "expert",
+        "gradeScore": 93,
+        "techniques": {
+          "nakedSingle": 47,
+          "hiddenSingle": 9,
+          "pointing": 1,
+          "xyWing": 1
+        },
+        "notes": {
+          "en": "Expert logic, hand-checked for a single solution.",
+          "id": "Logika expert, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:masterclass:02",
+        "title": {
+          "en": "Wing and a prayer",
+          "id": "Sayap dan doa"
+        },
+        "givens": "000009820500260009000000700000590002050000094900027000006000000300071006045300000",
+        "solution": "613749825587263149429815763861594372752138694934627581176952438398471256245386917",
+        "tier": "expert",
+        "gradeScore": 104,
+        "techniques": {
+          "nakedSingle": 40,
+          "hiddenSingle": 16,
+          "pointing": 2,
+          "xyWing": 1
+        },
+        "notes": {
+          "en": "Expert logic, hand-checked for a single solution.",
+          "id": "Logika expert, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:masterclass:03",
+        "title": {
+          "en": "Swordfish",
+          "id": "Ikan pedang"
+        },
+        "givens": "000900806109000000000070010805000700000623000001000600940080000000000903208001000",
+        "solution": "453912876179836245682475319865149732794623158321758694946387521517264983238591467",
+        "tier": "master",
+        "gradeScore": 113,
+        "techniques": {
+          "hiddenSingle": 23,
+          "nakedSingle": 35,
+          "pointing": 2,
+          "xyWing": 1
+        },
+        "notes": {
+          "en": "Master logic, hand-checked for a single solution.",
+          "id": "Logika master, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:masterclass:04",
+        "title": {
+          "en": "Skyscraper view",
+          "id": "Pemandangan menara"
+        },
+        "givens": "700006034003007000500020006040000600080050070005000020400010002000300900920600001",
+        "solution": "712896534863547219594123786241738695689251473375469128437915862156382947928674351",
+        "tier": "expert",
+        "gradeScore": 128,
+        "techniques": {
+          "hiddenSingle": 22,
+          "nakedSingle": 34,
+          "pointing": 5,
+          "nakedPair": 1,
+          "xyWing": 1
+        },
+        "notes": {
+          "en": "Expert logic, hand-checked for a single solution.",
+          "id": "Logika expert, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:masterclass:05",
+        "title": {
+          "en": "Master class",
+          "id": "Kelas master"
+        },
+        "givens": "390860700080000902000200000500600000006000300000007021000006000201000050007041036",
+        "solution": "392865714185473962674219583513692847726184395948357621439526178261738459857941236",
+        "tier": "master",
+        "gradeScore": 107,
+        "techniques": {
+          "nakedSingle": 45,
+          "hiddenSingle": 11,
+          "xWing": 1,
+          "xyWing": 1
+        },
+        "notes": {
+          "en": "Master logic, hand-checked for a single solution.",
+          "id": "Logika master, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:masterclass:06",
+        "title": {
+          "en": "Deep water",
+          "id": "Air dalam"
+        },
+        "givens": "000080200090200000100700640000065002008000500570810000089020003000408010001030000",
+        "solution": "367184259894256137152793648413965782928347561576812394689521473235478916741639825",
+        "tier": "expert",
+        "gradeScore": 118,
+        "techniques": {
+          "hiddenSingle": 17,
+          "nakedSingle": 38,
+          "pointing": 4,
+          "nakedPair": 1,
+          "hiddenPair": 1,
+          "xWing": 1
+        },
+        "notes": {
+          "en": "Expert logic, hand-checked for a single solution.",
+          "id": "Logika expert, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:masterclass:07",
+        "title": {
+          "en": "Final boss",
+          "id": "Bos terakhir"
+        },
+        "givens": "010050007070306089000000003080060000002000900000090052100000000320407010000020070",
+        "solution": "813259467275346189496178523984562731752813946631794852147635298329487615568921374",
+        "tier": "master",
+        "gradeScore": 121,
+        "techniques": {
+          "nakedSingle": 45,
+          "hiddenSingle": 12,
+          "nakedPair": 2,
+          "xWing": 1,
+          "xyWing": 1
+        },
+        "notes": {
+          "en": "Master logic, hand-checked for a single solution.",
+          "id": "Logika master, diperiksa untuk satu solusi."
+        }
+      },
+      {
+        "id": "pack:masterclass:08",
+        "title": {
+          "en": "Quiet mastery",
+          "id": "Penguasaan tenang"
+        },
+        "givens": "900062004060100800000007100530000400001000500009000031002800000003006080000740006",
+        "solution": "918562374367194852254387169536271498481639527729458631672815943143926785895743216",
+        "tier": "master",
+        "gradeScore": 107,
+        "techniques": {
+          "hiddenSingle": 19,
+          "nakedSingle": 37,
+          "pointing": 2,
+          "xyWing": 1
+        },
+        "notes": {
+          "en": "Master logic, hand-checked for a single solution.",
+          "id": "Logika master, diperiksa untuk satu solusi."
+        }
+      }
+    ]
+  }
+]
