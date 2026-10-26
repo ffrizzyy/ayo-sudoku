@@ -2,7 +2,7 @@
 
 **A friendly, polished Sudoku game for the browser.** Play Classic, Daily, Zen, Challenge and handcrafted packs, online or offline. Learn techniques, chase stars, and keep your progress on your own device.
 
-Made by **[ffrizzy](https://ffrizzy.vercel.app/)** · [Play it live](https://ffrizzy.vercel.app/) · [Report a bug](https://github.com/ffrizzyy/ayo-sudoku/issues)
+Made by **[ffrizzy](https://ffrizzy.vercel.app/)** · [Source on GitHub](https://github.com/ffrizzyy/ayo-sudoku) · [Report a bug](https://github.com/ffrizzyy/ayo-sudoku/issues)
 
 [![CI](https://github.com/ffrizzyy/ayo-sudoku/actions/workflows/ci.yml/badge.svg)](https://github.com/ffrizzyy/ayo-sudoku/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0A84FF.svg)](LICENSE)
@@ -135,6 +135,8 @@ The app is a static build. On Vercel, import the repository and keep the default
 pnpm build
 pnpm preview
 ```
+
+A live URL is not baked into this repository: `https://ffrizzy.vercel.app/` is the author's personal website, not the game. After the first deployment, add the real game URL to `index.html` (`canonical`, `og:url`, absolute `og:image` and `twitter:image`), create `public/sitemap.xml`, update `public/robots.txt`, and add the link to this README. Until then the metadata uses a relative share image and no canonical URL.
 
 After deploying, add `sw-kill.json` at the site root if a service worker release ever needs to be retired; the worker deletes its caches and unregisters itself on the next visit.
 

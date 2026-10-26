@@ -1,4 +1,2 @@
 User-agent: *
 Allow: /
-
-Sitemap: https://ffrizzy.vercel.app/sitemap.xml
