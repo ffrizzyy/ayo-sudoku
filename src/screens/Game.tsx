@@ -973,6 +973,7 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle }: GameScreenProp
   return (
     <div className="game-screen">
       <Confetti active={session.status === "won"} />
+      <h1 className="sr-only">{t("game.heading", { mode: modeLabel, tier: tierLabel })}</h1>
       <div className="sr-only" aria-live="polite">{announcement}</div>
 
       <header className="game-top">

@@ -67,6 +67,12 @@
   border: 1px dashed var(--line-strong);
 }
 
+.empty-note.is-heading {
+  color: var(--ink-2);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
 /* Shared per-card accent palette (distinct from the app-wide accent). */
 .accent-blue { --card-accent: #0a84ff; --card-soft: color-mix(in srgb, #0a84ff 13%, transparent); }
 .accent-pink { --card-accent: #f2295b; --card-soft: color-mix(in srgb, #f2295b 13%, transparent); }

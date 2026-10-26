@@ -100,7 +100,7 @@ export function Lesson({ lessonId, onBack, onNavigate, onPractice }: LessonProps
             <Icon name="arrow-left" size={18} /> {t("learn.backToLearn")}
           </button>
         </header>
-        <p className="empty-note">{t("common.error")}</p>
+        <h1 className="empty-note is-heading">{t("common.notFound")}</h1>
       </div>
     );
   }

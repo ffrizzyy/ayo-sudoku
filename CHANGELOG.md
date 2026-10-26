@@ -35,4 +35,13 @@ The first public release, made by [ffrizzy](https://ffrizzy.vercel.app/).
 - Deterministic daily generation and a Web Worker wrapper.
 - 22 unit tests covering geometry, solving, uniqueness, generation, grading, hints, share codes, imports and backups.
 
+### Fixed
+
+- Hints close their sheet, shade the board and keep the explanation in a dismissible banner, so the nudge stays visible.
+- The service worker only honours `/sw-kill.json` when it returns JSON with `kill: true`; a single page app answering unknown paths with `index.html` can no longer unregister it.
+- Backups include and restore progress meta: lessons learned, modes and languages played, and the shared flag.
+- "Back home" from an imported game returns to Home; pack and lesson games still return to their own screen.
+- The motion setting reads "Reduce motion", matching what the on state does.
+- Game and pause screens expose a level-one heading, and missing lesson or pack routes show translated copy instead of a raw key.
+
 [1.0.0]: https://github.com/ffrizzyy/ayo-sudoku/releases/tag/v1.0.0

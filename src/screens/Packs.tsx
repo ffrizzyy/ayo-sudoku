@@ -124,7 +124,7 @@ export function PackDetail({ packId, onBack, onPlay }: PackDetailProps) {
             <Icon name="arrow-left" size={18} /> {t("packs.backToPacks")}
           </button>
         </header>
-        <p className="empty-note">{t("common.error")}</p>
+        <h1 className="empty-note is-heading">{t("common.notFound")}</h1>
       </div>
     );
   }

@@ -308,6 +308,7 @@ export function SettingsScreen({ onNavigate, onReplayOnboarding }: SettingsScree
             ref={fileRef}
             type="file"
             accept="application/json,.json"
+            aria-label={t("settings.importData")}
             hidden
             onChange={(event) => {
               void handleFile(event.target.files?.[0]);
