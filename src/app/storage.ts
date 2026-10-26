@@ -201,6 +201,7 @@ export function exportBackup(settings: unknown): string {
     daily: readDaily(),
     packProgress: readPackProgress(),
     achievements: readAchievements(),
+    meta: readMeta(),
   };
   return JSON.stringify(backup, null, 2);
 }
@@ -241,6 +242,7 @@ export function applyBackup(data: Record<string, unknown>): void {
   if (data.daily) write(KEYS.daily, data.daily);
   if (data.packProgress) write(KEYS.packs, data.packProgress);
   if (data.achievements) write(KEYS.achievements, data.achievements);
+  if (data.meta) write(KEYS.meta, data.meta);
 }
 
 export function resetAllData(): void {

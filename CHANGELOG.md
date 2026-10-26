@@ -33,6 +33,6 @@ The first public release, made by [ffrizzy](https://ffrizzy.vercel.app/).
 - Seeded PRNG, symmetric clue carving and human-style difficulty grading.
 - Clue targets scale by board area, so 4x4 and 6x6 puzzles are carved instead of arriving filled.
 - Deterministic daily generation and a Web Worker wrapper.
-- 20 unit tests covering geometry, solving, uniqueness, generation, grading, hints, share codes and imports.
+- 22 unit tests covering geometry, solving, uniqueness, generation, grading, hints, share codes, imports and backups.
 
 [1.0.0]: https://github.com/ffrizzyy/ayo-sudoku/releases/tag/v1.0.0

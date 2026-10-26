@@ -250,7 +250,7 @@ export function App() {
   const startImported = useCallback(
     (puzzle: PuzzleDef) => {
       const session = makeSession(puzzle, "import", "import");
-      launch(session, "/import");
+      launch(session, "/");
     },
     [launch],
   );
