@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: "Ayo Sudoku!"
+message: "If you reference or build on Ayo Sudoku!, please cite it as below."
+type: software
+authors:
+  - name: "ffrizzy"
+    family-names: "ffrizzy"
+    website: "https://ffrizzy.vercel.app/"
+repository-code: "https://github.com/ffrizzyy/ayo-sudoku"
+url: "https://ffrizzy.vercel.app/"
+abstract: >-
+  A friendly, polished Sudoku game for the browser with Classic, Daily, Zen,
+  Challenge, pack and lesson modes. It runs offline, stores progress locally,
+  and ships a pure TypeScript puzzle engine for generation, grading, hints and
+  share codes. Made by ffrizzy.
+keywords:
+  - sudoku
+  - game
+  - browser-game
+  - progressive-web-app
+  - typescript
+  - react
+license: MIT
+version: 1.0.0
+date-released: "2026-10-26"
