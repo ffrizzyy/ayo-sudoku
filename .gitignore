@@ -18,6 +18,9 @@ test-results/
 .env.*
 !.env.example
 
+# Vercel project link
+.vercel/
+
 # Editor and OS noise
 .vscode/*
 !.vscode/extensions.json

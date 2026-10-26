@@ -2,7 +2,7 @@
 
 **A friendly, polished Sudoku game for the browser.** Play Classic, Daily, Zen, Challenge and handcrafted packs, online or offline. Learn techniques, chase stars, and keep your progress on your own device.
 
-Made by **[ffrizzy](https://ffrizzy.vercel.app/)** · [Source on GitHub](https://github.com/ffrizzyy/ayo-sudoku) · [Report a bug](https://github.com/ffrizzyy/ayo-sudoku/issues)
+Made by **[ffrizzy](https://ffrizzy.vercel.app/)** · [Play Ayo Sudoku!](https://ayosudoku.vercel.app/) · [Source on GitHub](https://github.com/ffrizzyy/ayo-sudoku) · [Report a bug](https://github.com/ffrizzyy/ayo-sudoku/issues)
 
 [![CI](https://github.com/ffrizzyy/ayo-sudoku/actions/workflows/ci.yml/badge.svg)](https://github.com/ffrizzyy/ayo-sudoku/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0A84FF.svg)](LICENSE)
@@ -129,14 +129,18 @@ Settings → Data can export a JSON backup, import one, or clear everything. Cle
 
 ## Deploy
 
-The app is a static build. On Vercel, import the repository and keep the defaults: `pnpm build`, output `dist`. `vercel.json` supplies the security headers, and `public/_headers` provides the same policy for Netlify or Cloudflare Pages.
+The app is a static build, live at **<https://ayosudoku.vercel.app/>**.
+
+The Vercel project is `ayosudoku`, connected to this repository, so every push to `main` deploys to production. Keep the defaults: `pnpm build`, output `dist`. `vercel.json` supplies the security headers, and `public/_headers` provides the same policy for Netlify or Cloudflare Pages.
 
 ```bash
 pnpm build
 pnpm preview
 ```
 
-A live URL is not baked into this repository: `https://ffrizzy.vercel.app/` is the author's personal website, not the game. After the first deployment, add the real game URL to `index.html` (`canonical`, `og:url`, absolute `og:image` and `twitter:image`), create `public/sitemap.xml`, update `public/robots.txt`, and add the link to this README. Until then the metadata uses a relative share image and no canonical URL.
+`index.html` carries the live canonical URL, `og:url` and absolute share images; `public/sitemap.xml` and `public/robots.txt` point at the same origin. If the game ever moves to a new domain, update those files together. `https://ffrizzy.vercel.app/` is the author's personal website, not the game.
+
+To deploy by hand, run `vercel deploy --prod`. To test the production build locally, use `pnpm build && pnpm preview`.
 
 If a service worker release ever needs to be retired, add `/sw-kill.json` at the site root with `{"kill": true}` (served as JSON). On the next visit the worker deletes its caches and unregisters itself. The worker ignores this file unless it returns JSON with `kill: true`, so a single page app that answers unknown paths with `index.html` cannot trigger it by accident.
 

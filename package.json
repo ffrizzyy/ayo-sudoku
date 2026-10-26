@@ -6,7 +6,7 @@
   "description": "A friendly, polished Sudoku game for the browser. Play offline, learn techniques, and chase stars.",
   "author": "ffrizzy (https://ffrizzy.vercel.app/)",
   "license": "MIT",
-  "homepage": "https://github.com/ffrizzyy/ayo-sudoku",
+  "homepage": "https://ayosudoku.vercel.app/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ffrizzyy/ayo-sudoku.git"

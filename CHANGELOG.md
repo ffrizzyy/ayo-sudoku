@@ -4,7 +4,7 @@ All notable changes to Ayo Sudoku! are documented here. The format follows [Keep
 
 ## [1.0.0] — 2026-10-26
 
-The first public release, made by [ffrizzy](https://ffrizzy.vercel.app/).
+The first public release, made by [ffrizzy](https://ffrizzy.vercel.app/). Play it at <https://ayosudoku.vercel.app/>.
 
 ### Added
 

@@ -7,7 +7,7 @@ authors:
     family-names: "ffrizzy"
     website: "https://ffrizzy.vercel.app/"
 repository-code: "https://github.com/ffrizzyy/ayo-sudoku"
-url: "https://github.com/ffrizzyy/ayo-sudoku"
+url: "https://ayosudoku.vercel.app/"
 abstract: >-
   A friendly, polished Sudoku game for the browser with Classic, Daily, Zen,
   Challenge, pack and lesson modes. It runs offline, stores progress locally,
