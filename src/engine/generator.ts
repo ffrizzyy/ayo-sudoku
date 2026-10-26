@@ -18,6 +18,27 @@ export const TARGET_CLUES: Record<Tier, number> = {
   master: 22,
 };
 
+/** Clue density for 9x9, scaled down for the smaller board sizes. */
+const TARGET_CLUE_RATIO: Record<Tier, number> = {
+  cozy: 44 / 81,
+  easy: 38 / 81,
+  medium: 32 / 81,
+  hard: 28 / 81,
+  expert: 25 / 81,
+  master: 22 / 81,
+};
+
+/**
+ * The 9x9 clue targets are absolute; 4x4 and 6x6 need the same density, not
+ * more clues than the board has cells. Keep at least size + 1 clues so a small
+ * board still has something to solve.
+ */
+export function targetCluesFor(tier: Tier, size: number): number {
+  if (size === 9) return TARGET_CLUES[tier];
+  const count = size * size;
+  return Math.max(size + 1, Math.round(count * TARGET_CLUE_RATIO[tier]));
+}
+
 export const PAR_BASE_SECONDS: Record<Tier, number> = {
   cozy: 150,
   easy: 240,
@@ -142,7 +163,7 @@ export function generatePuzzle(options: GenerateOptions): GenerateResult {
   const requestedIndex = TIERS.indexOf(tier);
   const seed = options.seed ?? `ayo-${tier}-${Date.now().toString(36)}`;
   const started = Date.now();
-  const target = TARGET_CLUES[tier];
+  const target = targetCluesFor(tier, spec.size);
   const maxAttempts = options.maxAttempts ?? (tier === "expert" || tier === "master" ? 24 : 32);
 
   let best: {
@@ -195,7 +216,11 @@ export function generatePuzzle(options: GenerateOptions): GenerateResult {
     // Last-resort fallback: a lightly carved puzzle with a guaranteed solution.
     const rng = sfc32(`${seed}:fallback`);
     const solution = randomSolution(spec, rng) ?? [];
-    const carved = carve(solution, spec, Math.min(TARGET_CLUES.easy + 6, spec.size * spec.size - 1), rng);
+    const fallbackTarget = Math.min(
+      targetCluesFor("easy", spec.size) + 6,
+      spec.size * spec.size - 1,
+    );
+    const carved = carve(solution, spec, fallbackTarget, rng);
     const grade = gradePuzzle(carved.values, spec);
     best = {
       values: carved.values,

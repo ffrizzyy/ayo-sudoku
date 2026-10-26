@@ -546,6 +546,7 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle }: GameScreenProp
     (level: "nudge" | "pointer" | "reveal") => {
       const current = sessionRef.current;
       if (!hintPlan || current.status !== "playing") return;
+      setHintOpen(false);
       const hints = {
         ...current.hintsUsed,
         [level]: current.hintsUsed[level] + 1,
@@ -1054,6 +1055,25 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle }: GameScreenProp
           ) : null}
           {session.mode === "challenge" ? <p className="status-panel-note">{t("game.challengeLives")}</p> : null}
           {isZen ? <p className="status-panel-note">{t("game.zenNote")}</p> : null}
+        </div>
+      ) : null}
+
+      {!hintOpen && hintMessage && boardHint ? (
+        <div
+          className={`hint-banner ${boardHint.wrongCells?.length ? "is-warning" : ""}`}
+          role="status"
+        >
+          <Icon name={boardHint.wrongCells?.length ? "alert" : "bulb"} size={16} />
+          <span>{hintMessage}</span>
+          <IconButton
+            icon="close"
+            label={t("common.close")}
+            className="hint-banner-close"
+            onClick={() => {
+              setHintMessage(null);
+              setBoardHint(null);
+            }}
+          />
         </div>
       ) : null}
 

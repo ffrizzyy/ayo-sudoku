@@ -21,7 +21,7 @@ The first public release, made by [ffrizzy](https://ffrizzy.vercel.app/).
 - **Settings**: theme, accent, digit style, input behavior, sound, haptics, left-handed layout, large text, high contrast, color-vision palette, reduced motion, language and data backup.
 - **Onboarding** for language, privacy and the first puzzle.
 - **English and Indonesian** UI with complete key parity.
-- **PWA**: installable manifest, maskable icons, offline service worker, update banner, install banner and `sw-kill.json` rollback switch.
+- **PWA**: installable manifest, maskable icons, offline service worker, update banner, install banner and a JSON `sw-kill.json` rollback switch.
 - **Accessibility**: keyboard play, roving board focus, live announcements, reduced motion, high contrast and visible focus.
 - **Security headers** for Vercel, Netlify and Cloudflare Pages, with a strict CSP.
 - Documentation: README, architecture notes, ADRs, pack format, contributing guide, security policy and citation metadata.
@@ -31,7 +31,8 @@ The first public release, made by [ffrizzy](https://ffrizzy.vercel.app/).
 - Pure TypeScript geometry and bitmask helpers for 4x4, 6x6, 9x9 and diagonal variants.
 - Backtracking solver with constraint propagation and a uniqueness counter.
 - Seeded PRNG, symmetric clue carving and human-style difficulty grading.
+- Clue targets scale by board area, so 4x4 and 6x6 puzzles are carved instead of arriving filled.
 - Deterministic daily generation and a Web Worker wrapper.
-- 18 unit tests covering geometry, solving, uniqueness, generation, grading, hints, share codes and imports.
+- 20 unit tests covering geometry, solving, uniqueness, generation, grading, hints, share codes and imports.
 
 [1.0.0]: https://github.com/ffrizzyy/ayo-sudoku/releases/tag/v1.0.0

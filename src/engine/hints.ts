@@ -104,14 +104,24 @@ export function planHint(
     }
   }
 
+  // Some steps (a naked single, for example) focus on cells without naming a
+  // unit. A nudge still needs a region to shade, so fall back to the row of the
+  // first focused cell; every unit that contains it is a fair place to look.
+  const unitCells =
+    first?.unitCells.length
+      ? first.unitCells
+      : first?.cells.length
+        ? geom.rows[geom.rowOf[first.cells[0]]]
+        : [];
+
   return {
     kind: first ? "step" : "solution",
     technique: first?.technique ?? null,
     cells: first?.cells ?? (placement ? [placement.cell] : []),
-    unitCells: first?.unitCells ?? [],
+    unitCells,
     digit: first?.digit ?? placement?.digit,
     placement,
-    unit: first?.unitCells.length ? describeUnit(first.unitCells, geom) : undefined,
+    unit: unitCells.length ? describeUnit(unitCells, geom) : undefined,
     wrongCells: [],
   };
 }

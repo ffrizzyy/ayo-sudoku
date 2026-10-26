@@ -1,6 +1,6 @@
 /* Ayo Sudoku! service worker. Offline shell plus runtime caching. Made by ffrizzy. */
 
-const VERSION = "ayo-sudoku-v1.0.0";
+const VERSION = "ayo-sudoku-v1.0.1";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const SHELL = [
@@ -128,17 +128,23 @@ function withTimeout(promise, ms) {
   });
 }
 
-/* Hosts can add /sw-kill.json to retire a broken service worker on the next visit. */
+/* Hosts can add /sw-kill.json to retire a broken service worker on the next visit.
+   The body must be {"kill": true}: a single page app often answers unknown
+   paths with index.html and a 200, which must not trigger the kill switch. */
 async function checkKillSwitch() {
   if (killSwitchChecked) return;
   killSwitchChecked = true;
   try {
     const response = await fetch("/sw-kill.json", { cache: "no-store" });
     if (!response.ok) return;
+    const type = response.headers.get("content-type") || "";
+    if (!type.includes("json")) return;
+    const payload = await response.json();
+    if (!payload || payload.kill !== true) return;
     const names = await caches.keys();
     await Promise.all(names.map((name) => caches.delete(name)));
     await self.registration.unregister();
   } catch (error) {
-    /* No kill switch, or offline. */
+    /* No kill switch, not JSON, or offline. */
   }
 }

@@ -138,7 +138,7 @@ pnpm preview
 
 A live URL is not baked into this repository: `https://ffrizzy.vercel.app/` is the author's personal website, not the game. After the first deployment, add the real game URL to `index.html` (`canonical`, `og:url`, absolute `og:image` and `twitter:image`), create `public/sitemap.xml`, update `public/robots.txt`, and add the link to this README. Until then the metadata uses a relative share image and no canonical URL.
 
-After deploying, add `sw-kill.json` at the site root if a service worker release ever needs to be retired; the worker deletes its caches and unregisters itself on the next visit.
+If a service worker release ever needs to be retired, add `/sw-kill.json` at the site root with `{"kill": true}` (served as JSON). On the next visit the worker deletes its caches and unregisters itself. The worker ignores this file unless it returns JSON with `kill: true`, so a single page app that answers unknown paths with `index.html` cannot trigger it by accident.
 
 ## Accessibility
 

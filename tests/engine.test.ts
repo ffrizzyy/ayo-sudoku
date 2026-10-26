@@ -115,6 +115,11 @@ describe("generator", () => {
   it("generates 4x4 and diagonal puzzles", () => {
     const mini = generatePuzzle({ tier: "easy", spec: makeSpec(4), seed: "mini", budgetMs: 4000 });
     expect(mini.puzzle.givens).toHaveLength(16);
+    expect(mini.puzzle.givens).toContain("0");
+    const miniValues = parseGrid(mini.puzzle.givens, getGeometry(makeSpec(4)));
+    expect(countSolutions(miniValues, makeSpec(4), 2)).toBe(1);
+    expect(formatGrid(solve(miniValues, makeSpec(4))!)).toBe(mini.puzzle.solution);
+
     const diag = generatePuzzle({
       tier: "medium",
       spec: makeSpec(9, "diagonal"),
@@ -124,6 +129,21 @@ describe("generator", () => {
     });
     const values = parseGrid(diag.puzzle.givens, getGeometry(makeSpec(9, "diagonal")));
     expect(countSolutions(values, makeSpec(9, "diagonal"), 2)).toBe(1);
+  }, 20000);
+
+  it("carves a solvable 6x6 puzzle instead of returning a full grid", () => {
+    const spec = makeSpec(6);
+    const result = generatePuzzle({ tier: "medium", spec, seed: "mini-6x6", budgetMs: 6000 });
+    const givens = result.puzzle.givens;
+    const clues = givens.split("").filter((char) => char !== "0").length;
+    expect(givens).toHaveLength(36);
+    expect(clues).toBeLessThan(36);
+    expect(clues).toBeGreaterThanOrEqual(spec.size + 1);
+    const values = parseGrid(givens, getGeometry(spec));
+    expect(countSolutions(values, spec, 2)).toBe(1);
+    const solution = solve(values, spec);
+    expect(solution).not.toBeNull();
+    expect(formatGrid(solution!)).toBe(result.puzzle.solution);
   }, 20000);
 });
 
@@ -193,6 +213,20 @@ describe("hints", () => {
     expect(hint.kind).toBe("step");
     expect(hint.cells.length).toBeGreaterThan(0);
     expect(hint.placement).toBeDefined();
+  });
+
+  it("shades a unit for a naked single so the nudge has a region", () => {
+    const spec = makeSpec(9);
+    const solution = parseGrid(SOLUTION, getGeometry(spec));
+    const values = [...solution];
+    values[0] = 0;
+    const hint = planHint(values, solution, spec);
+    expect(hint.kind).toBe("step");
+    expect(hint.technique).toBe("nakedSingle");
+    expect(hint.cells).toEqual([0]);
+    expect(hint.unitCells).toHaveLength(9);
+    expect(hint.unit?.type).toBe("row");
+    expect(hint.unit?.index).toBe(1);
   });
 
   it("points at wrong entries first", () => {
