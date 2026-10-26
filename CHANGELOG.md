@@ -43,5 +43,6 @@ The first public release, made by [ffrizzy](https://ffrizzy.vercel.app/).
 - "Back home" from an imported game returns to Home; pack and lesson games still return to their own screen.
 - The motion setting reads "Reduce motion", matching what the on state does.
 - Game and pause screens expose a level-one heading, and missing lesson or pack routes show translated copy instead of a raw key.
+- Win, lose and pause exits are labelled by where they land: "Back home" for free play, "Done" when the game returns to a daily, pack or lesson screen.
 
 [1.0.0]: https://github.com/ffrizzyy/ayo-sudoku/releases/tag/v1.0.0

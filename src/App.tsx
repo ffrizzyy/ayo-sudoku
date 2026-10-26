@@ -352,6 +352,7 @@ export function App() {
         key={gameSession.id}
         initial={gameSession}
         onQuitHome={quitGame}
+        exitLabel={returnRoute === "/" ? undefined : t("common.done")}
         onNextPuzzle={canGoNext(gameSession) ? () => goNext(gameSession) : undefined}
       />
     ) : (

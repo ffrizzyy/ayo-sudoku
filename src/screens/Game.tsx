@@ -76,9 +76,11 @@ interface GameScreenProps {
   initial: SavedGame;
   onQuitHome: () => void;
   onNextPuzzle?: () => void;
+  /** Where leaving the game lands, e.g. "Back home" or "Done" for a pack. */
+  exitLabel?: string;
 }
 
-export function GameScreen({ initial, onQuitHome, onNextPuzzle }: GameScreenProps) {
+export function GameScreen({ initial, onQuitHome, onNextPuzzle, exitLabel }: GameScreenProps) {
   const { t, locale } = useI18n();
   const { settings } = useSettings();
   const { recordResult, noteInputMode, noteLanguage } = useData();
@@ -1208,7 +1210,7 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle }: GameScreenProp
                   {t("game.restart")}
                 </Button>
                 <Button variant="tinted" icon="home" onClick={() => setConfirmAction("quit")}>
-                  {t("game.backHome")}
+                  {exitLabel ?? t("game.backHome")}
                 </Button>
               </div>
               <p className="pause-note">{t("game.pauseInfo")}</p>
@@ -1358,7 +1360,7 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle }: GameScreenProp
               {t("game.share")}
             </Button>
             <Button variant="plain" icon="home" onClick={leaveGame}>
-              {t("game.backHome")}
+              {exitLabel ?? t("game.backHome")}
             </Button>
           </div>
           <p className="win-credit">{t("common.madeBy", { name: CREDITS.author })}</p>
@@ -1396,7 +1398,7 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle }: GameScreenProp
               {t("game.tryAgain")}
             </Button>
             <Button variant="plain" icon="home" onClick={leaveGame}>
-              {t("game.backHome")}
+              {exitLabel ?? t("game.backHome")}
             </Button>
           </div>
           <p className="win-credit">{t("common.madeBy", { name: CREDITS.author })}</p>
