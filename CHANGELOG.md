@@ -2,6 +2,31 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.0.1] — 2026-10-27
+
+A polish release focused on clarity for colourblind players, a permanent install entry point, and safer backups.
+
+### Added
+
+- **Install any time.** A download chip in the Home header and an App card in Settings open the browser install prompt, with manual instructions when the prompt is unavailable. Both disappear once the app runs standalone.
+- **Digit completion.** Placing the last copy of a digit now flashes every cell of that digit, marks the number-pad key as done with a check, and announces it to screen readers.
+- **Backup validation.** Imports check the shape of every section and refuse corrupt saves, results, daily records, packs, achievements or meta instead of writing them.
+
+### Changed
+
+- **Same-digit highlight** is far stronger: a denser fill, a 2px inset ring and heavier type, so it reads by luminance and shape rather than hue alone.
+- **Quieter chrome.** The bottom tabs are icon-only with accessible names and tooltips, the install card and banner use shorter copy, and the floating bar is a little slimmer.
+- The number pad now counts only solution-correct placements and shows how many copies of each digit are left.
+
+### Fixed
+
+- The service worker checks the `sw-kill.json` rollback switch on navigation, at most once an hour, instead of only on activation.
+- A daily replay only overwrites the stored result when it earns more stars or a faster time.
+- The Home weekday now follows the same UTC day as the daily puzzle.
+- Sheet focus trapping also covers non-dismissible sheets, and the decisive Close control is localised.
+- The confetti loop cancels its frame on unmount.
+- Removed a settings toggle that did nothing; the Auto marks tool is unchanged.
+
 ## [1.0.0] — 2026-10-26
 
 The first public release, made by [ffrizzy](https://ffrizzy.vercel.app/). Play it at <https://ayosudoku.vercel.app/>.

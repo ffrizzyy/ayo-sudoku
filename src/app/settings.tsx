@@ -22,7 +22,6 @@ export interface Settings {
   accent: Accent;
   digitStyle: DigitStyle;
   mistakeCheck: MistakeCheck;
-  autoCandidates: boolean;
   smartCleanup: boolean;
   highlight: { sameDigit: boolean; peers: boolean; candidates: boolean };
   showTimer: boolean;
@@ -44,7 +43,6 @@ export const DEFAULT_SETTINGS: Settings = {
   accent: "blue",
   digitStyle: "numerals",
   mistakeCheck: "onEntry",
-  autoCandidates: false,
   smartCleanup: true,
   highlight: { sameDigit: true, peers: true, candidates: true },
   showTimer: true,

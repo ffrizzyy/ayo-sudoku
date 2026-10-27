@@ -28,8 +28,9 @@ export function NumberPad({
     >
       {Array.from({ length: size }, (_, index) => {
         const digit = index + 1;
-        const remaining = counts[digit] ?? 0;
-        const finished = remaining <= 0;
+        const placed = counts[digit] ?? 0;
+        const remaining = Math.max(0, size - placed);
+        const finished = remaining === 0;
         if (colorMode) {
           return (
             <button

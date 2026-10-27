@@ -155,18 +155,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
       let nextDaily = daily;
       if (result.won && result.mode === "daily" && result.dailyDate) {
-        nextDaily = {
-          ...daily,
-          [result.dailyDate]: {
-            date: result.dailyDate,
-            puzzleId: result.puzzleId,
-            timeMs: result.timeMs,
-            stars: result.stars,
-            finishedAt: result.finishedAt,
-          },
-        };
-        writeDaily(nextDaily);
-        setDaily(nextDaily);
+        const existing = daily[result.dailyDate];
+        const better =
+          !existing ||
+          result.stars > existing.stars ||
+          (result.stars === existing.stars && result.timeMs < existing.timeMs);
+        if (better) {
+          nextDaily = {
+            ...daily,
+            [result.dailyDate]: {
+              date: result.dailyDate,
+              puzzleId: result.puzzleId,
+              timeMs: result.timeMs,
+              stars: result.stars,
+              finishedAt: result.finishedAt,
+            },
+          };
+          writeDaily(nextDaily);
+          setDaily(nextDaily);
+        }
       }
 
       let nextPacks = packs;

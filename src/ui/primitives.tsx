@@ -7,6 +7,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { Icon, type IconName, StarIcon } from "./Icon";
+import { useI18n } from "../i18n";
 
 type ButtonVariant = "primary" | "tinted" | "plain" | "ghost" | "danger" | "glass";
 
@@ -189,6 +190,7 @@ export function Sheet({
   dismissible?: boolean;
 }) {
   const titleId = useId();
+  const { t } = useI18n();
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<Element | null>(null);
 
@@ -207,9 +209,9 @@ export function Sheet({
   }, [open]);
 
   useEffect(() => {
-    if (!open || !dismissible) return;
+    if (!open) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && dismissible) {
         event.preventDefault();
         onClose();
       }
@@ -261,7 +263,7 @@ export function Sheet({
             {subtitle ? <p className="sheet-subtitle">{subtitle}</p> : null}
           </div>
           {dismissible ? (
-            <IconButton icon="close" label="Close" onClick={onClose} className="sheet-close" />
+            <IconButton icon="close" label={t("common.close")} onClick={onClose} className="sheet-close" />
           ) : null}
         </header>
         <div className="sheet-body">{children}</div>

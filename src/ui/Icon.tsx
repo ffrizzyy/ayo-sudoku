@@ -47,9 +47,9 @@ export type IconName =
   | "vibrate"
   | "wifi-off"
   | "clipboard"
-  | "sparkles"
   | "import"
   | "check-circle"
+  | "refresh"
   | "dots";
 
 const PATHS: Record<IconName, ReactNode> = {
@@ -104,6 +104,7 @@ const PATHS: Record<IconName, ReactNode> = {
     </>
   ),
   download: <path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 20h16" />,
+  refresh: <path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v4h-4" />,
   upload: <path d="M12 21V9m0 0 4.5 4.5M12 9l-4.5 4.5M4 4h16" />,
   lock: (
     <>
@@ -191,7 +192,6 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M9 4V3h6v1M9 9h6M9 13h6M9 17h3" />
     </>
   ),
-  sparkles: <path d="m12 3 1.4 4.1L17.5 8.5l-4.1 1.4L12 14l-1.4-4.1L6.5 8.5l4.1-1.4ZM18.5 14l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8ZM5 14l.7 1.8 1.8.7-1.8.7L5 19l-.7-1.8-1.8-.7 1.8-.7Z" />,
   import: <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 16v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3" />,
   "check-circle": (
     <>

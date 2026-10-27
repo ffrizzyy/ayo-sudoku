@@ -385,6 +385,25 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle, exitLabel }: Gam
         }
       }
 
+      // A digit is done when every cell that needs it holds it.
+      const size = session.puzzle.spec.size;
+      const finishedDigits = new Set<number>();
+      for (let digit = 1; digit <= size; digit++) {
+        let beforeCount = 0;
+        let afterCount = 0;
+        for (let index = 0; index < afterValues.length; index++) {
+          if (solutionValues[index] !== digit) continue;
+          if (beforeValues[index] === digit) beforeCount++;
+          if (afterValues[index] === digit) afterCount++;
+        }
+        if (afterCount === size && beforeCount < size) finishedDigits.add(digit);
+      }
+      for (const digit of finishedDigits) {
+        for (let index = 0; index < afterValues.length; index++) {
+          if (solutionValues[index] === digit && afterValues[index] === digit) completed.add(index);
+        }
+      }
+
       wrongRef.current = nextWrong;
       setWrongCells(nextWrong);
       commit(changes, patch, options.force ? "hint" : "value");
@@ -392,27 +411,34 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle, exitLabel }: Gam
       if (patch.status === "lost") {
         sound("lose");
         setHintOpen(false);
-      } else if (completed.size) {
-        markCompleted(completed);
-        sound("complete");
-        setAnnouncement(t("a11y.liveUnit"));
-      } else if (madeMistake) {
-        sound("error");
-      } else if (placements) {
-        sound("place");
       } else {
-        sound("tap");
-      }
+        if (completed.size) {
+          markCompleted(completed);
+          sound("complete");
+        } else if (madeMistake) {
+          sound("error");
+        } else if (placements) {
+          sound("place");
+        } else {
+          sound("tap");
+        }
 
-      if (placements) {
-        const cell = targets[0];
-        setAnnouncement(
-          t("a11y.livePlaced", {
-            value: digit,
-            row: geom.rowOf[cell] + 1,
-            col: geom.colOf[cell] + 1,
-          }),
-        );
+        // One announcement: the placement, then any unit or digit it finished.
+        if (placements || completed.size) {
+          const parts: string[] = [];
+          if (placements) {
+            const cell = targets[0];
+            parts.push(
+              t("a11y.livePlaced", {
+                value: digit,
+                row: geom.rowOf[cell] + 1,
+                col: geom.colOf[cell] + 1,
+              }),
+            );
+          }
+          if (completed.size) parts.push(finishedDigits.size ? t("a11y.liveDigit") : t("a11y.liveUnit"));
+          setAnnouncement(parts.join(" "));
+        }
       }
       warnedRef.current = false;
     },
@@ -883,11 +909,13 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle, exitLabel }: Gam
 
   const counts = useMemo(() => {
     const result = new Array(session.puzzle.spec.size + 1).fill(0);
-    for (const cell of session.cells) {
-      if (cell.value >= 1 && cell.value <= session.puzzle.spec.size) result[cell.value]++;
-    }
+    session.cells.forEach((cell, index) => {
+      if (cell.value >= 1 && cell.value <= session.puzzle.spec.size && cell.value === solutionValues[index]) {
+        result[cell.value]++;
+      }
+    });
     return result;
-  }, [session.cells, session.puzzle.spec.size]);
+  }, [session.cells, session.puzzle.spec.size, solutionValues]);
 
   const conflicts = useMemo(() => {
     const values = session.cells.map((cell) => cell.value);

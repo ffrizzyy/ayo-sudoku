@@ -35,7 +35,7 @@ Ayo Sudoku! is a local-first Sudoku app that feels at home on a phone. There are
 - **Stars, stats and streaks.** Per-tier records, mistake rates, daily calendar and achievements.
 - **Accessibility.** Keyboard-first board, large text, high contrast, color-vision-friendly digits, left-handed layout, reduced motion and optional sound/haptics.
 - **Bilingual.** Full English and Indonesian UI, including generated puzzle notes and lessons.
-- **PWA.** Installable, offline-ready, with an update banner and a kill switch for bad releases.
+- **PWA.** Installable from the Home header or Settings at any time, offline-ready, with an update banner and a kill switch for bad releases.
 - **Privacy.** No network requests at runtime. Your data never leaves the browser unless you export a backup.
 
 ## Run it

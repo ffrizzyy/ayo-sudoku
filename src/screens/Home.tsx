@@ -25,6 +25,8 @@ interface HomeProps {
   onDaily: () => void;
   onResume: (session: SavedGame) => void;
   onNavigate: (route: string) => void;
+  installed: boolean;
+  onInstall: () => void;
 }
 
 function progressOf(save: SavedGame): number {
@@ -42,7 +44,7 @@ function suggestedTier(results: ReturnType<typeof useData>["results"]): Tier {
   return order[Math.min(order.length - 1, order.indexOf(best) + 1)];
 }
 
-export function Home({ onPlay, onDaily, onResume, onNavigate }: HomeProps) {
+export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInstall }: HomeProps) {
   const { t, locale } = useI18n();
   const { update } = useSettings();
   const data = useData();
@@ -106,6 +108,17 @@ export function Home({ onPlay, onDaily, onResume, onNavigate }: HomeProps) {
             <Icon name="globe" size={17} />
             {locale === "en" ? "EN" : "ID"}
           </button>
+          {!installed ? (
+            <button
+              type="button"
+              className="lang-chip icon-only"
+              onClick={onInstall}
+              aria-label={t("settings.installApp")}
+              title={t("settings.installApp")}
+            >
+              <Icon name="download" size={18} />
+            </button>
+          ) : null}
           <button
             type="button"
             className="lang-chip icon-only"
@@ -145,7 +158,7 @@ export function Home({ onPlay, onDaily, onResume, onNavigate }: HomeProps) {
         ) : (
           <div className="continue-empty">
             <span className="continue-empty-icon">
-              <Icon name="sparkles" size={22} />
+              <Icon name="play" size={22} />
             </span>
             <span>
               <strong>{t("home.newGame")}</strong>
@@ -213,7 +226,7 @@ export function Home({ onPlay, onDaily, onResume, onNavigate }: HomeProps) {
                 <StarIcon size={20} filled={dailyDone} />
                 <span>
                   <strong>{dailyDone ? t("daily.solved") : t("common.today")}</strong>
-                  <small>{new Intl.DateTimeFormat(locale, { weekday: "long" }).format(Date.now())}</small>
+                  <small>{new Intl.DateTimeFormat(locale, { weekday: "long", timeZone: "UTC" }).format(Date.now())}</small>
                 </span>
               </div>
             </div>
@@ -282,7 +295,7 @@ export function Home({ onPlay, onDaily, onResume, onNavigate }: HomeProps) {
         </section>
 
         <p className="home-suggestion">
-          <Icon name="sparkles" size={16} />
+          <Icon name="bulb" size={16} />
           {t("home.adaptive", { tier: t(`tier.${suggestion}`) })}
         </p>
       </main>

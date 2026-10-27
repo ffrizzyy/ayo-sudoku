@@ -78,4 +78,27 @@ describe("backup round trip", () => {
     const result = inspectBackup("<!doctype html><h1>Ayo Sudoku!</h1>");
     expect(result.ok).toBe(false);
   });
+
+  it("rejects a backup with a malformed section", () => {
+    const raw = JSON.stringify({
+      app: "ayo-sudoku",
+      version: 1,
+      meta: META,
+      results: [{ id: "broken", mode: "classic" }],
+    });
+    const inspected = inspectBackup(raw);
+    expect(inspected.ok).toBe(false);
+    if (!inspected.ok) expect(inspected.error).toBe("invalidSection:results");
+  });
+
+  it("does not write corrupt data over saved progress", () => {
+    writeMeta(META);
+    applyBackup({
+      app: "ayo-sudoku",
+      meta: { schemaVersion: 1, installId: 42 },
+      saves: { classic: { id: "not-a-save" } },
+    });
+    expect(readMeta().installId).toBe(META.installId);
+    expect(readMeta().lessonsLearned).toEqual(META.lessonsLearned);
+  });
 });

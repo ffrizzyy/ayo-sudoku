@@ -41,7 +41,7 @@ export function About({ onNavigate }: { onNavigate: (route: string) => void }) {
 
         <section className="about-card">
           <h2>
-            <Icon name="sparkles" size={19} /> {t("about.inspirations")}
+            <Icon name="bulb" size={19} /> {t("about.inspirations")}
           </h2>
           <ul className="inspiration-list">
             {CREDITS.inspirations.map((item) => (

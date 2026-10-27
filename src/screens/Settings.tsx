@@ -15,9 +15,12 @@ const ACCENTS: Accent[] = ["blue", "pink", "green", "orange", "purple", "teal"];
 interface SettingsScreenProps {
   onNavigate: (route: string) => void;
   onReplayOnboarding: () => void;
+  installed: boolean;
+  canInstall: boolean;
+  onInstall: () => void;
 }
 
-export function SettingsScreen({ onNavigate, onReplayOnboarding }: SettingsScreenProps) {
+export function SettingsScreen({ onNavigate, onReplayOnboarding, installed, canInstall, onInstall }: SettingsScreenProps) {
   const { t, locale } = useI18n();
   const { settings, update, resetSettings } = useSettings();
   const { reloadData } = useData();
@@ -211,12 +214,6 @@ export function SettingsScreen({ onNavigate, onReplayOnboarding }: SettingsScree
             />
           </SettingRow>
           <Switch
-            label={t("settings.autoCandidates")}
-            description={t("settings.autoCandidatesNote")}
-            checked={settings.autoCandidates}
-            onChange={(autoCandidates) => update({ autoCandidates })}
-          />
-          <Switch
             label={t("settings.smartCleanup")}
             description={t("settings.smartCleanupNote")}
             checked={settings.smartCleanup}
@@ -292,7 +289,26 @@ export function SettingsScreen({ onNavigate, onReplayOnboarding }: SettingsScree
 
         <section className="settings-card">
           <h2>
-            <Icon name="download" size={19} /> {t("settings.data")}
+            <Icon name="grid" size={19} /> {t("settings.app")}
+          </h2>
+          <SettingRow
+            label={t("settings.installApp")}
+            description={installed ? t("settings.installedNote") : t("settings.installNote")}
+          >
+            <Button variant="tinted" icon={installed ? "check" : "download"} onClick={onInstall} disabled={installed}>
+              {installed ? t("settings.installed") : t("settings.install")}
+            </Button>
+          </SettingRow>
+          {!installed && !canInstall ? (
+            <p className="settings-note">
+              <Icon name="info" size={15} /> {t("settings.installHint")}
+            </p>
+          ) : null}
+        </section>
+
+        <section className="settings-card">
+          <h2>
+            <Icon name="clipboard" size={19} /> {t("settings.data")}
           </h2>
           <SettingRow label={t("settings.exportData")} description={t("settings.exportNote")}>
             <Button variant="tinted" icon="download" onClick={handleExport}>
@@ -338,7 +354,7 @@ export function SettingsScreen({ onNavigate, onReplayOnboarding }: SettingsScree
           </button>
           <button type="button" className="settings-link" onClick={onReplayOnboarding}>
             <span>
-              <Icon name="sparkles" size={19} />
+              <Icon name="book" size={19} />
               <span>
                 <strong>{t("settings.onboarding")}</strong>
                 <small>{t("onboarding.tutorialTitle")}</small>

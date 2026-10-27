@@ -708,6 +708,8 @@
 
 .cell.is-same {
   background: var(--same-bg);
+  box-shadow: inset 0 0 0 2px var(--same-ring);
+  font-weight: 850;
 }
 
 .cell.is-candidate {
@@ -894,7 +896,25 @@
 }
 
 .pad-key.is-finished {
-  opacity: 0.42;
+  color: color-mix(in srgb, var(--success) 70%, var(--ink));
+  background: var(--success-soft);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--success) 45%, transparent);
+  animation: pad-finish 420ms var(--ease-spring);
+}
+
+.pad-key.is-finished:hover:not(:disabled),
+.pad-key.is-finished:active:not(:disabled) {
+  background: var(--success-soft);
+}
+
+.pad-key.is-finished .pad-count {
+  color: color-mix(in srgb, var(--success) 70%, var(--ink));
+}
+
+@keyframes pad-finish {
+  0% { transform: scale(0.92); }
+  55% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
 .pad-digit {

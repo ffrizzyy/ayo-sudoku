@@ -214,6 +214,75 @@ export interface BackupSummary {
   achievements: number;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function isSavedGame(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.mode === "string" &&
+    isRecord(value.puzzle) &&
+    isRecord(value.puzzle.spec) &&
+    isNumber(value.puzzle.spec.size) &&
+    Array.isArray(value.cells) &&
+    value.cells.every((cell) => isRecord(cell) && isNumber(cell.value))
+  );
+}
+
+function isResult(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.mode === "string" &&
+    typeof value.tier === "string" &&
+    isNumber(value.timeMs) &&
+    isNumber(value.finishedAt) &&
+    typeof value.won === "boolean"
+  );
+}
+
+function isDaily(value: unknown): boolean {
+  return isRecord(value) && typeof value.date === "string" && isNumber(value.timeMs) && isNumber(value.stars);
+}
+
+function isPackEntry(value: unknown): boolean {
+  return isRecord(value) && isNumber(value.stars) && isNumber(value.timeMs);
+}
+
+function isMeta(value: unknown): boolean {
+  return isRecord(value) && (!("schemaVersion" in value) || isNumber(value.schemaVersion));
+}
+
+/** Returns the first section whose shape does not match a backup we wrote, if any. */
+function badBackupSection(data: Record<string, unknown>): string | null {
+  if ("saves" in data) {
+    const saves = data.saves;
+    if (!isRecord(saves)) return "saves";
+    if (!Object.values(saves).every(isSavedGame)) return "saves";
+  }
+  if ("results" in data) {
+    if (!Array.isArray(data.results)) return "results";
+    if (!data.results.every(isResult)) return "results";
+  }
+  if ("daily" in data) {
+    if (!isRecord(data.daily) || !Object.values(data.daily).every(isDaily)) return "daily";
+  }
+  if ("packProgress" in data) {
+    if (!isRecord(data.packProgress) || !Object.values(data.packProgress).every(isPackEntry)) return "packProgress";
+  }
+  if ("achievements" in data) {
+    if (!isRecord(data.achievements) || !Object.values(data.achievements).every(isNumber)) return "achievements";
+  }
+  if ("meta" in data && !isMeta(data.meta)) return "meta";
+  return null;
+}
+
 export function inspectBackup(raw: string): { ok: true; data: Record<string, unknown>; summary: BackupSummary } | { ok: false; error: string } {
   if (raw.length > 2 * 1024 * 1024) return { ok: false, error: "tooBig" };
   let data: Record<string, unknown>;
@@ -225,7 +294,9 @@ export function inspectBackup(raw: string): { ok: true; data: Record<string, unk
   } catch {
     return { ok: false, error: "invalidJson" };
   }
-  if (!data || data.app !== "ayo-sudoku") return { ok: false, error: "notABackup" };
+  if (!isRecord(data) || data.app !== "ayo-sudoku") return { ok: false, error: "notABackup" };
+  const badSection = badBackupSection(data);
+  if (badSection) return { ok: false, error: `invalidSection:${badSection}` };
   const summary: BackupSummary = {
     saves: Object.keys((data.saves as object) ?? {}).length,
     results: Array.isArray(data.results) ? data.results.length : 0,
@@ -237,6 +308,9 @@ export function inspectBackup(raw: string): { ok: true; data: Record<string, unk
 }
 
 export function applyBackup(data: Record<string, unknown>): void {
+  if (!isRecord(data) || data.app !== "ayo-sudoku") return;
+  // Never write a section that would break the screens on the next load.
+  if (badBackupSection(data)) return;
   if (data.saves) write(KEYS.saves, data.saves);
   if (Array.isArray(data.results)) writeResults(data.results as GameResult[]);
   if (data.daily) write(KEYS.daily, data.daily);

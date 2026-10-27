@@ -298,7 +298,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           <Button
             variant="primary"
             size="lg"
-            icon={step === TOTAL_STEPS - 1 ? "sparkles" : "arrow-right"}
+            icon={step === TOTAL_STEPS - 1 ? "check-circle" : "arrow-right"}
             onClick={next}
             disabled={step === 2 && !placed}
           >

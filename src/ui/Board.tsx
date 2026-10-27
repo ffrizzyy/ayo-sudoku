@@ -107,7 +107,7 @@ export function Board({
     };
   }, []);
 
-  const focusCell = selected.size ? Math.min(...selected) : 0;
+  const focusCell = selected.size ? Math.max(...selected) : 0;
 
   const cellLabel = (cell: number): string => {
     const data = cells[cell];

@@ -55,7 +55,10 @@ export function Confetti({ active }: { active: boolean }) {
 
     let frame = 0;
     let last = performance.now();
+    let raf = 0;
+    let stopped = false;
     const draw = (now: number) => {
+      if (stopped) return;
       const delta = Math.min(32, now - last);
       last = now;
       ctx.clearRect(0, 0, width, height);
@@ -86,13 +89,14 @@ export function Confetti({ active }: { active: boolean }) {
       ctx.globalAlpha = 1;
       if (alive && frame < 200) {
         frame++;
-        requestAnimationFrame(draw);
+        raf = requestAnimationFrame(draw);
       } else {
         ctx.clearRect(0, 0, width, height);
       }
     };
-    const raf = requestAnimationFrame(draw);
+    raf = requestAnimationFrame(draw);
     return () => {
+      stopped = true;
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
     };

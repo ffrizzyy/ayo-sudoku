@@ -95,6 +95,12 @@ interface InstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+function isStandalone(): boolean {
+  if (typeof window === "undefined") return false;
+  const iosStandalone = (navigator as Navigator & { standalone?: boolean }).standalone;
+  return window.matchMedia("(display-mode: standalone)").matches || iosStandalone === true;
+}
+
 interface LoadingState {
   mode: GameMode;
   tier: Tier;
@@ -112,6 +118,7 @@ export function App() {
   const [loading, setLoading] = useState<LoadingState | null>(null);
   const [replayOnboarding, setReplayOnboarding] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
+  const [installed, setInstalled] = useState(isStandalone);
   const [installDismissed, setInstallDismissed] = useState(() => {
     try {
       return localStorage.getItem("ayo.install.dismissed") === "1";
@@ -147,6 +154,7 @@ export function App() {
     };
     const onInstalled = () => {
       setInstallPrompt(null);
+      setInstalled(true);
       push(t("pwa.installed"), "success");
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
@@ -329,7 +337,14 @@ export function App() {
   };
 
   const requestInstall = async () => {
-    if (!installPrompt) return;
+    if (installed || isStandalone()) {
+      push(t("pwa.alreadyInstalled"));
+      return;
+    }
+    if (!installPrompt) {
+      push(t("pwa.installUnavailable"));
+      return;
+    }
     const prompt = installPrompt;
     setInstallPrompt(null);
     try {
@@ -337,7 +352,8 @@ export function App() {
       const choice = await prompt.userChoice;
       if (choice.outcome === "accepted") push(t("pwa.installed"), "success");
     } catch {
-      // The browser may withdraw the prompt; nothing else to do.
+      // The browser may withdraw the prompt; show the manual path instead.
+      push(t("pwa.installUnavailable"));
     }
   };
 
@@ -394,7 +410,13 @@ export function App() {
     content = <Stats />;
   } else if (path === "/settings") {
     content = (
-      <SettingsScreen onNavigate={navigate} onReplayOnboarding={() => setReplayOnboarding(true)} />
+      <SettingsScreen
+        onNavigate={navigate}
+        onReplayOnboarding={() => setReplayOnboarding(true)}
+        installed={installed}
+        canInstall={Boolean(installPrompt)}
+        onInstall={() => void requestInstall()}
+      />
     );
   } else if (path === "/about") {
     content = <About onNavigate={navigate} />;
@@ -414,6 +436,8 @@ export function App() {
         onDaily={() => void startDaily()}
         onResume={resumeSession}
         onNavigate={navigate}
+        installed={installed}
+        onInstall={() => void requestInstall()}
       />
     );
   }
@@ -459,7 +483,7 @@ export function App() {
 
       {showTabs && updateReady ? (
         <div className="app-banner update-banner">
-          <Icon name="sparkles" size={18} />
+          <Icon name="refresh" size={18} />
           <span>{t("pwa.update")}</span>
           <button type="button" onClick={applyUpdate}>
             {t("pwa.updateNow")}
@@ -470,7 +494,7 @@ export function App() {
         </div>
       ) : null}
 
-      {showTabs && !updateReady && installPrompt && !installDismissed ? (
+      {showTabs && !updateReady && installPrompt && !installDismissed && !installed ? (
         <div className="app-banner install-banner">
           <Icon name="download" size={18} />
           <span>{t("pwa.install")}</span>
@@ -500,12 +524,13 @@ export function App() {
                 className={`tab-item ${active ? "is-active" : ""}`}
                 onClick={() => navigate(tab.path)}
                 aria-current={active ? "page" : undefined}
+                aria-label={t(tab.key)}
+                title={t(tab.key)}
               >
                 <span className="tab-icon">
-                  <Icon name={tab.icon} size={22} />
+                  <Icon name={tab.icon} size={24} />
                   {showDailyDot ? <span className="tab-dot" aria-hidden="true" /> : null}
                 </span>
-                <span>{t(tab.key)}</span>
               </button>
             );
           })}

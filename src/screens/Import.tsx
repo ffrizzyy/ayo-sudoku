@@ -125,7 +125,7 @@ export function Import({ initialCode, onPlay, onBack }: ImportProps) {
             <Button variant="tinted" icon="clipboard" onClick={() => void paste()}>
               {t("import.paste")}
             </Button>
-            <Button variant="plain" icon="sparkles" onClick={() => setInput(SAMPLE_GRID)}>
+            <Button variant="plain" icon="grid" onClick={() => setInput(SAMPLE_GRID)}>
               {t("import.sample")}
             </Button>
             {input ? (

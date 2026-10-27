@@ -12,7 +12,7 @@ export interface LessonDefinition {
   accent: string;
   /** technique key used for labels */
   technique: string;
-  icon: "grid" | "eye" | "bulb" | "wand" | "sparkles" | "check-circle";
+  icon: "grid" | "eye" | "bulb" | "wand" | "check-circle";
   steps: LocalizedList;
 }
 
@@ -83,7 +83,7 @@ export const LESSONS: LessonDefinition[] = [
     tier: "medium",
     accent: "blue",
     technique: "pointing",
-    icon: "sparkles",
+    icon: "grid",
     steps: {
       en: [
         "Inside a box, find where one digit can still go.",
@@ -163,7 +163,7 @@ export const LESSONS: LessonDefinition[] = [
     tier: "expert",
     accent: "orange",
     technique: "pointing",
-    icon: "sparkles",
+    icon: "eye",
     steps: {
       en: [
         "Find two parallel rows (or columns) that each hold a digit in two places.",
@@ -183,7 +183,7 @@ export const LESSONS: LessonDefinition[] = [
     tier: "expert",
     accent: "pink",
     technique: "xyWing",
-    icon: "sparkles",
+    icon: "wand",
     steps: {
       en: [
         "Find a pivot cell with exactly two candidates, say 3 and 7.",

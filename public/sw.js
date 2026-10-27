@@ -1,6 +1,6 @@
 /* Ayo Sudoku! service worker. Offline shell plus runtime caching. Made by ffrizzy. */
 
-const VERSION = "ayo-sudoku-v1.0.1";
+const VERSION = "ayo-sudoku-v1.0.2";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const SHELL = [
@@ -17,7 +17,8 @@ const SHELL = [
   "/og.png",
 ];
 const NAVIGATION_TIMEOUT = 4000;
-let killSwitchChecked = false;
+const KILL_CHECK_INTERVAL = 60 * 60 * 1000;
+let killSwitchCheckedAt = 0;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -57,6 +58,8 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
+    // The kill switch must be reachable long after install, not only on activate.
+    event.waitUntil(checkKillSwitch());
     event.respondWith(handleNavigation(request));
     return;
   }
@@ -132,8 +135,9 @@ function withTimeout(promise, ms) {
    The body must be {"kill": true}: a single page app often answers unknown
    paths with index.html and a 200, which must not trigger the kill switch. */
 async function checkKillSwitch() {
-  if (killSwitchChecked) return;
-  killSwitchChecked = true;
+  const now = Date.now();
+  if (now - killSwitchCheckedAt < KILL_CHECK_INTERVAL) return;
+  killSwitchCheckedAt = now;
   try {
     const response = await fetch("/sw-kill.json", { cache: "no-store" });
     if (!response.ok) return;

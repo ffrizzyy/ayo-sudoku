@@ -53,7 +53,8 @@
   --given-ink: #26262b;
   --entry-ink: var(--accent-ink);
   --peer-bg: var(--accent-ghost);
-  --same-bg: color-mix(in srgb, var(--accent) 17%, var(--surface));
+  --same-bg: color-mix(in srgb, var(--accent) 34%, var(--surface));
+  --same-ring: var(--accent-strong);
   --candidate-bg: color-mix(in srgb, var(--accent) 20%, var(--surface));
   --selected-bg: var(--accent);
   --selected-ink: #ffffff;
@@ -74,7 +75,7 @@
   --shadow-float: 0 18px 50px rgba(17, 17, 20, 0.18);
   --shadow-accent: 0 10px 24px color-mix(in srgb, var(--accent) 32%, transparent);
 
-  --tab-height: 62px;
+  --tab-height: 56px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --maxw: 1180px;
@@ -107,7 +108,8 @@
   --board-given: #26262a;
   --given-ink: #f5f5fa;
   --peer-bg: color-mix(in srgb, var(--accent) 15%, #1d1d20);
-  --same-bg: color-mix(in srgb, var(--accent) 26%, #1d1d20);
+  --same-bg: color-mix(in srgb, var(--accent) 42%, #1d1d20);
+  --same-ring: var(--accent);
   --candidate-bg: color-mix(in srgb, var(--accent) 30%, #1d1d20);
   --conflict-bg: color-mix(in srgb, var(--danger) 30%, #1d1d20);
   --hint-bg: color-mix(in srgb, var(--warning) 30%, #1d1d20);
