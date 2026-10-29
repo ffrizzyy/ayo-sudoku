@@ -19,7 +19,7 @@ flowchart TD
         Storage["app/storage.ts (versioned localStorage)"]
         GeneratorHook["app/useGenerator.ts"]
         Content["app/packs.ts, app/lessons.ts, app/daily.ts"]
-        I18n["i18n/index.tsx"]
+        I18n["i18n/copy.ts + i18n/index.tsx"]
     end
 
     subgraph Engine["Engine layer (pure TypeScript)"]
@@ -106,7 +106,7 @@ The engine is covered by `tests/engine.test.ts`. Generation performance is measu
 
 ## Internationalisation
 
-`src/i18n/index.tsx` holds two typed dictionaries and a provider. `t(key, vars)` does dot lookup, `{name}` interpolation and falls back to the key for development. The provider sets `<html lang>` and persists changes through settings. `scripts/check-i18n.ts` compares the key trees in both languages and fails CI on mismatch. Content that is data rather than UI (pack titles, lesson steps) stores `{ en, id }` objects and resolves through a helper.
+`src/i18n/copy.ts` holds every user-facing string: two typed dictionaries, the lesson steps and the crash-screen fallback. `src/i18n/index.tsx` holds the provider, lookup and formatters; `t(key, vars)` does dot lookup, `{name}` interpolation and falls back to the key for development. The provider sets `<html lang>` and persists changes through settings. `scripts/check-i18n.ts` compares the key trees in both languages, the lesson step lists and the fallback copy, and fails CI on any mismatch. Screens never carry their own copy.
 
 ## PWA and offline
 

@@ -1,6 +1,6 @@
 # ADR 0001: Stack and tooling
 
-- **Status:** Accepted
+- **Status:** Accepted (the dictionary file moved; see ADR 0005)
 - **Date:** 2026-10-24
 - **Deciders:** ffrizzy
 
