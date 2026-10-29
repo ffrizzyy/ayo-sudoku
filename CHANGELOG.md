@@ -2,6 +2,20 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.0.4] — 2026-10-29
+
+The grids are easier to read, and every word in the app now lives in one file.
+
+### Added
+
+- **Clear 3×3 blocks.** The board paints a dedicated separator between the nine boxes: a wider gutter in a tone that sits between the cells and the frame. The rule follows the theme (a dark line on light, a light line on dark), strengthens in high contrast, and works the same on 6×6 and 4×4 boards.
+- `src/i18n/copy.ts` holds every user-facing string: the EN and ID dictionaries, the ten lesson step lists, the share-sheet note and the crash-screen fallback. Edit copy there and run `pnpm i18n:check`.
+
+### Changed
+
+- The crash screen and the share sheet no longer carry their own bilingual literals; both read from the copy file, and the crash screen uses `CREDITS` for the author line.
+- `pnpm i18n:check` now also verifies that every lesson exists in both languages with the same number of steps, and that the fallback copy has no missing keys.
+
 ## [1.0.3] — 2026-10-29
 
 A player-requested release: past daily puzzles are playable again, and the
