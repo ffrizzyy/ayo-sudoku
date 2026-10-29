@@ -48,7 +48,9 @@
   --board-bg: #e7e7ee;
   --board-cell: #ffffff;
   --board-given: #f4f4f8;
-  --board-box-gap: 6px;
+  /* The gutter between the nine 3x3 boxes; deliberately stronger than --board-bg. */
+  --board-rule: #c7c7d6;
+  --board-box-gap: 8px;
   --board-cell-gap: 3px;
   --given-ink: #26262b;
   --entry-ink: var(--accent-ink);
@@ -109,6 +111,7 @@
   --board-bg: #0c0c10;
   --board-cell: #1d1d20;
   --board-given: #26262a;
+  --board-rule: #3c3c48;
   --given-ink: #f5f5fa;
   --peer-bg: color-mix(in srgb, var(--accent) 15%, #1d1d20);
   --same-bg: color-mix(in srgb, var(--accent) 42%, #1d1d20);
@@ -183,6 +186,7 @@
   --line-strong: rgba(60, 60, 67, 0.55);
   --board-bg: #d5d5dd;
   --board-given: #eeeeF3;
+  --board-rule: #a7a7ba;
 }
 [data-theme="dark"][data-contrast="high"] {
   --ink-2: rgba(255, 255, 255, 0.86);
@@ -191,6 +195,7 @@
   --line-strong: rgba(255, 255, 255, 0.55);
   --board-bg: #242429;
   --board-given: #303036;
+  --board-rule: #5c5c6b;
 }
 
 [data-cvd="deuteranopia"],

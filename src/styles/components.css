@@ -632,8 +632,6 @@
 /* ---------- Board ---------- */
 
 .board {
-  --board-box-gap: 6px;
-  --board-cell-gap: 3px;
   position: relative;
   display: grid;
   grid-template-columns: repeat(var(--box-cols), minmax(0, 1fr));
@@ -642,7 +640,7 @@
   aspect-ratio: 1;
   padding: var(--board-box-gap);
   border-radius: clamp(14px, 3vw, 26px);
-  background: var(--board-bg);
+  background: var(--board-rule);
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, var(--ink) 4%, transparent),
     inset 0 2px 8px rgba(17, 17, 20, 0.05);
@@ -668,6 +666,10 @@
   grid-template-columns: repeat(var(--cell-cols), minmax(0, 1fr));
   gap: var(--board-cell-gap);
   min-width: 0;
+  /* Each 3x3 block sits on the soft board tone; the gap around it shows the
+     board rule, so all nine blocks read as separate tiles. */
+  border-radius: clamp(6px, 2cqw, 14px);
+  background: var(--board-bg);
 }
 
 .cell {
@@ -1126,7 +1128,7 @@
 
 @media (max-width: 560px) {
   .board {
-    --board-box-gap: 5px;
+    --board-box-gap: 7px;
     --board-cell-gap: 2.5px;
   }
 
