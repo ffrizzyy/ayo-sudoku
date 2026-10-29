@@ -12,15 +12,19 @@ import {
   readMeta,
   readPackProgress,
   readResults,
+  readTotals,
   writeAchievements,
   writeDaily,
   writeMeta,
   writePackProgress,
   writeResults,
+  writeTotals,
   type DailyRecord,
   type GameResult,
   type Meta,
   type PackProgress,
+  type PuzzleBest,
+  type Totals,
 } from "./storage";
 import { LESSONS } from "./lessons";
 import { PACKS } from "./packs";
@@ -79,16 +83,18 @@ export function computeStreaks(daily: Record<string, DailyRecord>): { current: n
 }
 
 export function bestStarsByPuzzle(
+  totals: Totals,
   results: GameResult[],
   packs: PackProgress,
 ): Record<string, number> {
   const best: Record<string, number> = {};
-  for (const [puzzleId, progress] of Object.entries(packs)) {
-    best[puzzleId] = Math.max(best[puzzleId] ?? 0, progress.stars);
-  }
+  const consider = (puzzleId: string, stars: number) => {
+    best[puzzleId] = Math.max(best[puzzleId] ?? 0, stars);
+  };
+  for (const [puzzleId, entry] of Object.entries(totals.best)) consider(puzzleId, entry.stars);
+  for (const [puzzleId, progress] of Object.entries(packs)) consider(puzzleId, progress.stars);
   for (const result of results) {
-    if (!result.won) continue;
-    best[result.puzzleId] = Math.max(best[result.puzzleId] ?? 0, result.stars);
+    if (result.won) consider(result.puzzleId, result.stars);
   }
   return best;
 }
@@ -98,12 +104,13 @@ function newlyUnlocked(
   daily: Record<string, DailyRecord>,
   packs: PackProgress,
   meta: Meta,
+  totals: Totals,
 ): string[] {
   const ids: string[] = [];
   const wins = results.filter((result) => result.won);
-  if (wins.length >= 1) ids.push("firstWin");
-  if (wins.length >= 10) ids.push("tenWins");
-  if (wins.length >= 100) ids.push("hundredWins");
+  if (totals.wins >= 1) ids.push("firstWin");
+  if (totals.wins >= 10) ids.push("tenWins");
+  if (totals.wins >= 100) ids.push("hundredWins");
   if (wins.some((result) => result.hints === 0)) ids.push("noHints");
   if (wins.some((result) => result.mistakes === 0)) ids.push("noMistakes");
   if (wins.some((result) => ["hard", "expert", "master"].includes(result.tier))) ids.push("hardWin");
@@ -133,6 +140,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [packs, setPacks] = useState<PackProgress>(readPackProgress);
   const [achievements, setAchievements] = useState<Record<string, number>>(readAchievements);
   const [meta, setMeta] = useState<Meta>(readMeta);
+  const [totals, setTotals] = useState<Totals>(readTotals);
 
   const commitAchievements = useCallback(
     (current: Record<string, number>, candidates: string[]): { next: Record<string, number>; added: string[] } => {
@@ -203,12 +211,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setMeta(nextMeta);
       }
 
-      const candidates = newlyUnlocked(nextResults, nextDaily, nextPacks, nextMeta);
+      // Lifetime totals stay correct even after old results fall off the cap.
+      let nextTotals: Totals = {
+        ...totals,
+        games: totals.games + 1,
+        wins: totals.wins + (result.won ? 1 : 0),
+        best: { ...totals.best },
+      };
+      if (result.won) {
+        const next: PuzzleBest = { stars: result.stars, timeMs: result.timeMs };
+        const existing = nextTotals.best[result.puzzleId];
+        if (!existing || next.stars > existing.stars || (next.stars === existing.stars && next.timeMs < existing.timeMs)) {
+          nextTotals = { ...nextTotals, best: { ...nextTotals.best, [result.puzzleId]: next } };
+        }
+      }
+      writeTotals(nextTotals);
+      setTotals(nextTotals);
+
+      const candidates = newlyUnlocked(nextResults, nextDaily, nextPacks, nextMeta, nextTotals);
       const { next: nextAchievements, added } = commitAchievements(achievements, candidates);
       if (added.length) setAchievements(nextAchievements);
       return added;
     },
-    [results, daily, packs, meta, achievements, commitAchievements],
+    [results, daily, packs, meta, totals, achievements, commitAchievements],
   );
 
   const unlockAchievement = useCallback(
@@ -263,6 +288,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setPacks(readPackProgress());
     setAchievements(readAchievements());
     setMeta(readMeta());
+    setTotals(readTotals());
   }, []);
 
   const markLessonLearned = useCallback(
@@ -279,9 +305,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo<DataValue>(() => {
-    const stars = Object.values(bestStarsByPuzzle(results, packs)).reduce((sum, value) => sum + value, 0);
+    const stars = Object.values(bestStarsByPuzzle(totals, results, packs)).reduce((sum, entry) => sum + entry, 0);
     const streaks = computeStreaks(daily);
-    const wins = results.filter((result) => result.won).length;
     return {
       results,
       daily,
@@ -291,8 +316,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       totalStars: stars,
       currentStreak: streaks.current,
       bestStreak: streaks.best,
-      wins,
-      games: results.length,
+      wins: totals.wins,
+      games: totals.games,
       recordResult,
       markShared,
       noteInputMode,
@@ -307,6 +332,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     packs,
     achievements,
     meta,
+    totals,
     recordResult,
     markShared,
     noteInputMode,

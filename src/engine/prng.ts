@@ -55,7 +55,3 @@ export function shuffle<T>(items: readonly T[], rng: Rng): T[] {
   }
   return copy;
 }
-
-export function pick<T>(items: readonly T[], rng: Rng): T {
-  return items[randomInt(rng, items.length)];
-}

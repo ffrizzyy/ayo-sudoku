@@ -18,14 +18,6 @@ export function popcount(mask: number): number {
   return count;
 }
 
-export function isSingle(mask: number): boolean {
-  return mask !== 0 && (mask & (mask - 1)) === 0;
-}
-
-export function lowestDigit(mask: number): number {
-  return 32 - Math.clz32(mask & -mask);
-}
-
 export function maskToDigits(mask: number): number[] {
   const digits: number[] = [];
   let value = mask;
@@ -35,20 +27,4 @@ export function maskToDigits(mask: number): number[] {
     value &= value - 1;
   }
   return digits;
-}
-
-export function hasDigit(mask: number, digit: number): boolean {
-  return (mask & digitMask(digit)) !== 0;
-}
-
-export function removeDigits(mask: number, digits: readonly number[]): number {
-  let next = mask;
-  for (const digit of digits) next &= ~digitMask(digit);
-  return next;
-}
-
-export function digitsToMask(digits: readonly number[]): number {
-  let mask = 0;
-  for (const digit of digits) mask |= digitMask(digit);
-  return mask;
 }

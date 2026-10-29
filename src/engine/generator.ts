@@ -239,13 +239,3 @@ export function generatePuzzle(options: GenerateOptions): GenerateResult {
     exactTierMatch: best.puzzle.tier === tier && best.distance === 0,
   };
 }
-
-/** Deterministic daily generation: no wall-clock budget so every player gets the same puzzle. */
-export function generateDaily(seed: string, spec: BoardSpec, tier: Tier = "medium"): PuzzleDef {
-  return generatePuzzle({
-    tier,
-    spec,
-    seed: `ayo-daily-${seed}`,
-    maxAttempts: 14,
-  }).puzzle;
-}

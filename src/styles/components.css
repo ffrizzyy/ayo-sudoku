@@ -1089,6 +1089,12 @@
   font-size: 0.9rem;
 }
 
+.confirm-note {
+  margin-top: 8px;
+  color: var(--ink-3);
+  font-size: 0.82rem;
+}
+
 .confirm-actions {
   display: flex;
   justify-content: flex-end;

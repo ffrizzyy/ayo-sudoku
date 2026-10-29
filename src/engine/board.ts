@@ -150,10 +150,6 @@ export function formatGrid(values: readonly number[]): string {
   return values.map((value) => (value === 0 ? "." : String(value))).join("");
 }
 
-export function parseGivens(givens: string, geom: Geometry): number[] {
-  return parseGrid(givens, geom);
-}
-
 /** Cells that duplicate a digit in any unit. */
 export function findConflicts(values: readonly number[], geom: Geometry): Set<number> {
   const conflicts = new Set<number>();
@@ -184,12 +180,4 @@ export function isValidGrid(values: readonly number[], geom: Geometry): boolean 
 
 export function isComplete(values: readonly number[], geom: Geometry): boolean {
   return values.every((value) => value > 0) && isValidGrid(values, geom);
-}
-
-export function cellName(cell: number, geom: Geometry): { row: number; col: number; box: number } {
-  return {
-    row: geom.rowOf[cell] + 1,
-    col: geom.colOf[cell] + 1,
-    box: geom.boxOf[cell] + 1,
-  };
 }

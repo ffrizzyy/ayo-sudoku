@@ -95,7 +95,3 @@ export function haptic(name: HapticName): void {
 export function hapticsSupported(): boolean {
   return typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
 }
-
-export function muteAudio(): void {
-  if (context && context.state === "running") void context.suspend();
-}

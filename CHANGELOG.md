@@ -2,6 +2,27 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.0.2] — 2026-10-28
+
+A maintenance release: progress totals that cannot shrink, a real choice when
+restoring a backup, and a first offline visit that works.
+
+### Added
+
+- **Merge or replace on import.** Restoring a backup now asks how to treat the data. Merge keeps both histories and picks the better entry where they overlap; Replace makes the backup the whole truth and clears anything it does not carry.
+
+### Changed
+
+- **Lifetime totals.** Games, wins and best stars are kept in `ayo.totals.v1` instead of being recalculated from the capped result history, so the star count no longer drops when older results fall off the 600-game cap. Existing installs are migrated from their current history on first load.
+- Backups are exported with a `totals` section and a format version of 2; version 1 backups still import.
+
+### Fixed
+
+- The service worker precaches the hashed bundle and stylesheet it finds in `index.html`, so the very first visit after install already works offline instead of relying on a previous network fetch to warm the runtime cache.
+- The "Everything bagel" achievement now says what it actually checks: all four input modes, at any time.
+- The loss screen shows "Try again" instead of the raw key `game.tryAgain`.
+- Removed 112 unused translation keys and 27 dead exports, including duplicate helpers in the engine, the unused long-duration formatter and the unused share-URL builder.
+
 ## [1.0.1] — 2026-10-27
 
 A polish release focused on clarity for colourblind players, a permanent install entry point, and safer backups.

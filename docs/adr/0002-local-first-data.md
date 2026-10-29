@@ -16,14 +16,14 @@ Persist everything in `localStorage` through `src/app/storage.ts`, using version
 
 ```text
 ayo.settings.v1   ayo.saves.v1      ayo.results.v1   ayo.daily.v1
-ayo.packs.v1      ayo.achievements.v1  ayo.meta.v1
+ayo.packs.v1      ayo.achievements.v1  ayo.meta.v1    ayo.totals.v1
 ayo.theme         ayo.install.dismissed
 ```
 
 - Reading is synchronous, which lets settings and the pre-paint theme bootstrap initialize without a loading state.
 - Writes are wrapped in `try/catch`; quota or privacy-mode failures degrade to an in-memory session instead of crashing.
-- Backups export the whole namespace as one JSON document with a schema version. Restore validates before replacing.
-- Result history is capped when written so the total stays bounded.
+- Backups export the whole namespace as one JSON document with a schema version. Restore validates every section, then either merges (keeping the better entry where histories overlap) or replaces the namespace outright.
+- Result history is capped when written so the total stays bounded, while lifetime games, wins and best stars live in `ayo.totals.v1` so the star total never falls back when an old result drops off the cap.
 - `navigator.storage.persist()` is requested once at startup where supported, to reduce eviction risk.
 
 The save model is a command log plus a cursor, not a database of moves. The current board is stored as `CellSnapshot[]` (value, given, corner mask, center mask, color), and each `Command` stores before/after snapshots for undo and redo. This makes the persisted shape independent of UI state and easy to validate on load.

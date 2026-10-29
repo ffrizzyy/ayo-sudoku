@@ -32,10 +32,6 @@ export interface LocalizedText {
 
 export const PACKS = rawPacks as PackContent[];
 
-export function getPack(id: string): PackContent | undefined {
-  return PACKS.find((pack) => pack.id === id);
-}
-
 export function packPuzzleToPuzzle(pack: PackContent, content: PackPuzzleContent): PuzzleDef {
   return {
     id: content.id,

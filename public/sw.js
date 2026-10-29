@@ -1,6 +1,6 @@
 /* Ayo Sudoku! service worker. Offline shell plus runtime caching. Made by ffrizzy. */
 
-const VERSION = "ayo-sudoku-v1.0.2";
+const VERSION = "ayo-sudoku-v1.0.3";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const SHELL = [
@@ -21,13 +21,29 @@ const KILL_CHECK_INTERVAL = 60 * 60 * 1000;
 let killSwitchCheckedAt = 0;
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(SHELL_CACHE)
-      .then((cache) => cache.addAll(SHELL))
-      .catch(() => undefined),
-  );
+  event.waitUntil(precache());
 });
+
+async function precache() {
+  const cache = await caches.open(SHELL_CACHE);
+  await cache.addAll(SHELL).catch(() => undefined);
+  await precacheAssets(cache);
+}
+
+/* index.html names the hashed bundle and stylesheet, which a static SHELL list cannot.
+   Cache them during install so the very first offline visit works, not just the
+   second one after the runtime cache has seen them. */
+async function precacheAssets(cache) {
+  try {
+    const response = await fetch("/index.html", { cache: "reload" });
+    if (!response.ok) return;
+    const html = await response.text();
+    const urls = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)].map((match) => match[1]);
+    await Promise.all(urls.map((url) => cache.add(url).catch(() => undefined)));
+  } catch (error) {
+    /* Installing offline: assets can still be picked up by the runtime cache. */
+  }
+}
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(

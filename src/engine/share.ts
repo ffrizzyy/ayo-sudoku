@@ -200,7 +200,3 @@ export function parseImport(input: string, spec: BoardSpec = makeSpec(9)): Impor
     return { ok: false, error: error instanceof Error ? error.message : "code.invalid" };
   }
 }
-
-export function shareUrl(code: string, origin = ""): string {
-  return `${origin}${origin ? "/" : ""}#/import/${code}`;
-}

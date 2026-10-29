@@ -3,7 +3,7 @@ import { useSettings, type Accent, type ColorVision, type DigitStyle, type Mista
 import { useI18n } from "../i18n";
 import { useData } from "../app/data";
 import { useToast } from "../app/toast";
-import { exportBackup, inspectBackup, applyBackup, resetAllData, type BackupSummary } from "../app/storage";
+import { exportBackup, inspectBackup, applyBackup, resetAllData, type BackupMode, type BackupSummary } from "../app/storage";
 import { Button, Segmented, SettingRow, Sheet, Switch } from "../ui/primitives";
 import { Icon } from "../ui/Icon";
 import { BubbleBackdrop } from "../ui/BubbleBackdrop";
@@ -57,12 +57,13 @@ export function SettingsScreen({ onNavigate, onReplayOnboarding, installed, canI
     setPending({ data: result.data, summary: result.summary });
   };
 
-  const confirmImport = () => {
+  const confirmImport = (mode: BackupMode) => {
     if (!pending) return;
-    applyBackup(pending.data);
+    applyBackup(pending.data, mode);
     const backupSettings = pending.data.settings as Partial<typeof settings> | undefined;
     if (backupSettings && typeof backupSettings === "object") {
       update({
+        ...(mode === "merge" ? settings : {}),
         ...backupSettings,
         schemaVersion: 1,
       });
@@ -405,12 +406,16 @@ export function SettingsScreen({ onNavigate, onReplayOnboarding, installed, canI
                 daily: pending.summary.daily,
               })}
             </p>
+            <p className="confirm-note">{t("settings.importChoice")}</p>
             <div className="confirm-actions">
               <Button variant="tinted" onClick={() => setPending(null)}>
                 {t("common.cancel")}
               </Button>
-              <Button variant="primary" onClick={confirmImport} icon="upload">
-                {t("settings.importData")}
+              <Button variant="tinted" onClick={() => confirmImport("replace")}>
+                {t("settings.importReplace")}
+              </Button>
+              <Button variant="primary" onClick={() => confirmImport("merge")} icon="upload">
+                {t("settings.importMerge")}
               </Button>
             </div>
           </>

@@ -7,7 +7,7 @@ export const CREDITS = {
   appNameShort: "Ayo Sudoku",
   author: "ffrizzy",
   authorUrl: "https://ffrizzy.vercel.app/",
-  version: "1.0.1",
+  version: "1.0.2",
   license: "MIT",
   tagline: "Ayo means let's go.",
   inspirations: [
@@ -31,8 +31,4 @@ export const CREDITS = {
 
 export function creditLine(): string {
   return `${CREDITS.appNameShort} by ${CREDITS.author}`;
-}
-
-export function madeByLine(): string {
-  return `Made by ${CREDITS.author}`;
 }

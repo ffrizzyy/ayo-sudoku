@@ -1,4 +1,4 @@
-import { makeSpec, type PuzzleDef, type Tier } from "../engine/types";
+import { type PuzzleDef, type Tier } from "../engine/types";
 
 export type GameMode = "classic" | "daily" | "zen" | "challenge" | "pack" | "learn" | "import";
 export type SaveSlot = "classic" | "daily" | "zen" | "challenge" | "pack" | "learn" | "import";
@@ -84,6 +84,23 @@ export interface Meta {
   modesUsed?: string[];
 }
 
+export interface PuzzleBest {
+  stars: number;
+  timeMs: number;
+}
+
+/** Lifetime counters, kept apart from the capped result history so totals never fall back. */
+export interface Totals {
+  schemaVersion: 1;
+  games: number;
+  wins: number;
+  best: Record<string, PuzzleBest>;
+}
+
+export type BackupMode = "merge" | "replace";
+
+export const RESULTS_LIMIT = 600;
+
 const KEYS = {
   settings: "ayo.settings.v1",
   saves: "ayo.saves.v1",
@@ -92,6 +109,7 @@ const KEYS = {
   packs: "ayo.packs.v1",
   achievements: "ayo.achievements.v1",
   meta: "ayo.meta.v1",
+  totals: "ayo.totals.v1",
   theme: "ayo.theme",
 } as const;
 
@@ -123,12 +141,6 @@ export function writeSave(game: SavedGame): void {
   write(KEYS.saves, saves);
 }
 
-export function removeSave(slot: SaveSlot): void {
-  const saves = readSaves();
-  delete saves[slot];
-  write(KEYS.saves, saves);
-}
-
 export function mostRecentSave(exclude?: SaveSlot): SavedGame | null {
   const saves = readSaves();
   const list = Object.entries(saves)
@@ -143,7 +155,7 @@ export function readResults(): GameResult[] {
 }
 
 export function writeResults(results: GameResult[]): void {
-  write(KEYS.results, results.slice(0, 600));
+  write(KEYS.results, results.slice(0, RESULTS_LIMIT));
 }
 
 export function readDaily(): Record<string, DailyRecord> {
@@ -190,10 +202,70 @@ export function writeMeta(meta: Meta): void {
   write(KEYS.meta, meta);
 }
 
+function isBetterBest(current: PuzzleBest | undefined, next: PuzzleBest): boolean {
+  if (!current) return true;
+  if (next.stars !== current.stars) return next.stars > current.stars;
+  return next.timeMs < current.timeMs;
+}
+
+/** Rebuilds the lifetime totals from the sections a backup carries. */
+export function totalsFromSections(
+  sections: {
+    results?: GameResult[];
+    packProgress?: PackProgress;
+    totals?: Totals;
+  },
+  fallback?: Totals,
+): Totals {
+  const best: Record<string, PuzzleBest> = { ...(fallback?.best ?? {}) };
+  for (const [puzzleId, entry] of Object.entries(sections.packProgress ?? {})) {
+    const next = { stars: entry.stars, timeMs: entry.timeMs };
+    if (isBetterBest(best[puzzleId], next)) best[puzzleId] = next;
+  }
+  for (const result of sections.results ?? []) {
+    if (!result.won) continue;
+    const next = { stars: result.stars, timeMs: result.timeMs };
+    if (isBetterBest(best[result.puzzleId], next)) best[result.puzzleId] = next;
+  }
+  for (const [puzzleId, entry] of Object.entries(sections.totals?.best ?? {})) {
+    if (isBetterBest(best[puzzleId], entry)) best[puzzleId] = entry;
+  }
+
+  const results = sections.results ?? [];
+  const countedGames = fallback ? Math.max(fallback.games, results.length) : results.length;
+  const countedWins = fallback
+    ? Math.max(fallback.wins, results.filter((result) => result.won).length)
+    : results.filter((result) => result.won).length;
+  return {
+    schemaVersion: 1,
+    games: Math.max(countedGames, sections.totals?.games ?? 0),
+    wins: Math.max(countedWins, sections.totals?.wins ?? 0),
+    best,
+  };
+}
+
+export function readTotals(): Totals {
+  const stored = read<Totals | null>(KEYS.totals, null);
+  if (stored && isRecord(stored) && isRecord(stored.best)) {
+    return totalsFromSections({ totals: stored });
+  }
+  // First run on this version: rebuild once from the history that is still on the device.
+  const rebuilt = totalsFromSections({
+    results: readResults(),
+    packProgress: readPackProgress(),
+  });
+  writeTotals(rebuilt);
+  return rebuilt;
+}
+
+export function writeTotals(totals: Totals): void {
+  write(KEYS.totals, totals);
+}
+
 export function exportBackup(settings: unknown): string {
   const backup = {
     app: "ayo-sudoku",
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     settings,
     saves: readSaves(),
@@ -202,6 +274,7 @@ export function exportBackup(settings: unknown): string {
     packProgress: readPackProgress(),
     achievements: readAchievements(),
     meta: readMeta(),
+    totals: readTotals(),
   };
   return JSON.stringify(backup, null, 2);
 }
@@ -259,6 +332,17 @@ function isMeta(value: unknown): boolean {
   return isRecord(value) && (!("schemaVersion" in value) || isNumber(value.schemaVersion));
 }
 
+function isTotals(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    (!("games" in value) || isNumber(value.games)) &&
+    (!("wins" in value) || isNumber(value.wins)) &&
+    (!("best" in value) ||
+      (isRecord(value.best) &&
+        Object.values(value.best).every((entry) => isRecord(entry) && isNumber(entry.stars) && isNumber(entry.timeMs))))
+  );
+}
+
 /** Returns the first section whose shape does not match a backup we wrote, if any. */
 function badBackupSection(data: Record<string, unknown>): string | null {
   if ("saves" in data) {
@@ -280,6 +364,7 @@ function badBackupSection(data: Record<string, unknown>): string | null {
     if (!isRecord(data.achievements) || !Object.values(data.achievements).every(isNumber)) return "achievements";
   }
   if ("meta" in data && !isMeta(data.meta)) return "meta";
+  if ("totals" in data && !isTotals(data.totals)) return "totals";
   return null;
 }
 
@@ -307,16 +392,137 @@ export function inspectBackup(raw: string): { ok: true; data: Record<string, unk
   return { ok: true, data, summary };
 }
 
-export function applyBackup(data: Record<string, unknown>): void {
+function mergeBest<T extends PuzzleBest>(
+  current: Record<string, T>,
+  incoming: Record<string, T>,
+): Record<string, T> {
+  const next = { ...current };
+  for (const [puzzleId, entry] of Object.entries(incoming)) {
+    if (isBetterBest(next[puzzleId], entry)) next[puzzleId] = entry;
+  }
+  return next;
+}
+
+function mergeResults(current: GameResult[], incoming: GameResult[]): GameResult[] {
+  const byId = new Map<string, GameResult>();
+  for (const result of [...current, ...incoming]) {
+    const existing = byId.get(result.id);
+    if (!existing || result.finishedAt > existing.finishedAt) byId.set(result.id, result);
+  }
+  return [...byId.values()].sort((a, b) => b.finishedAt - a.finishedAt).slice(0, RESULTS_LIMIT);
+}
+
+function mergeDaily(
+  current: Record<string, DailyRecord>,
+  incoming: Record<string, DailyRecord>,
+): Record<string, DailyRecord> {
+  const next = { ...current };
+  for (const [date, record] of Object.entries(incoming)) {
+    const existing = next[date];
+    if (!existing || record.stars > existing.stars || (record.stars === existing.stars && record.timeMs < existing.timeMs)) {
+      next[date] = record;
+    }
+  }
+  return next;
+}
+
+function mergeSaves(
+  current: Partial<Record<SaveSlot, SavedGame>>,
+  incoming: Partial<Record<SaveSlot, SavedGame>>,
+): Partial<Record<SaveSlot, SavedGame>> {
+  const next = { ...current };
+  for (const [slot, game] of Object.entries(incoming) as [SaveSlot, SavedGame][]) {
+    const existing = next[slot];
+    if (!existing || (game.updatedAt ?? 0) > (existing.updatedAt ?? 0)) next[slot] = game;
+  }
+  return next;
+}
+
+function mergeAchievements(
+  current: Record<string, number>,
+  incoming: Record<string, number>,
+): Record<string, number> {
+  const next = { ...current };
+  for (const [id, unlockedAt] of Object.entries(incoming)) {
+    next[id] = next[id] ? Math.min(next[id], unlockedAt) : unlockedAt;
+  }
+  return next;
+}
+
+function union(current: string[] | undefined, incoming: string[] | undefined): string[] {
+  return [...new Set([...(current ?? []), ...(incoming ?? [])])];
+}
+
+function mergeMeta(current: Meta, incoming: Meta | null): Meta {
+  if (!incoming) return current;
+  return {
+    ...current,
+    ...incoming,
+    schemaVersion: 1,
+    // The install id identifies this device, not the backup it came from.
+    installId: current.installId,
+    shared: current.shared || Boolean(incoming.shared),
+    languagesPlayed: union(current.languagesPlayed, incoming.languagesPlayed),
+    lessonsLearned: union(current.lessonsLearned, incoming.lessonsLearned),
+    modesUsed: union(current.modesUsed, incoming.modesUsed),
+  };
+}
+
+/**
+ * Restores a backup. `merge` keeps both histories and picks the better entry where they
+ * overlap; `replace` makes the backup the whole truth and clears sections it omits.
+ */
+export function applyBackup(data: Record<string, unknown>, mode: BackupMode = "merge"): void {
   if (!isRecord(data) || data.app !== "ayo-sudoku") return;
   // Never write a section that would break the screens on the next load.
   if (badBackupSection(data)) return;
-  if (data.saves) write(KEYS.saves, data.saves);
-  if (Array.isArray(data.results)) writeResults(data.results as GameResult[]);
-  if (data.daily) write(KEYS.daily, data.daily);
-  if (data.packProgress) write(KEYS.packs, data.packProgress);
-  if (data.achievements) write(KEYS.achievements, data.achievements);
-  if (data.meta) write(KEYS.meta, data.meta);
+
+  const saves = (data.saves as Partial<Record<SaveSlot, SavedGame>> | undefined) ?? {};
+  const results = (data.results as GameResult[] | undefined) ?? [];
+  const daily = (data.daily as Record<string, DailyRecord> | undefined) ?? {};
+  const packs = (data.packProgress as PackProgress | undefined) ?? {};
+  const achievements = (data.achievements as Record<string, number> | undefined) ?? {};
+  const meta = (data.meta as Meta | undefined) ?? null;
+  const incomingTotals = (data.totals as Totals | undefined) ?? null;
+
+  if (mode === "replace") {
+    write(KEYS.saves, saves);
+    writeResults(results);
+    write(KEYS.daily, daily);
+    write(KEYS.packs, packs);
+    write(KEYS.achievements, achievements);
+    if (meta) write(KEYS.meta, meta);
+    writeTotals(
+      totalsFromSections({
+        results,
+        packProgress: packs,
+        totals: incomingTotals ?? undefined,
+      }),
+    );
+    return;
+  }
+
+  const nextResults = mergeResults(readResults(), results);
+  const nextDaily = mergeDaily(readDaily(), daily);
+  const nextPacks = mergeBest(readPackProgress(), packs);
+  const nextAchievements = mergeAchievements(readAchievements(), achievements);
+  const currentTotals = readTotals();
+  const nextTotals = totalsFromSections(
+    {
+      results: nextResults,
+      packProgress: nextPacks,
+      totals: incomingTotals ? { ...incomingTotals, best: mergeBest(currentTotals.best, incomingTotals.best) } : undefined,
+    },
+    currentTotals,
+  );
+
+  write(KEYS.saves, mergeSaves(readSaves(), saves));
+  writeResults(nextResults);
+  write(KEYS.daily, nextDaily);
+  write(KEYS.packs, nextPacks);
+  write(KEYS.achievements, nextAchievements);
+  write(KEYS.meta, mergeMeta(readMeta(), meta));
+  writeTotals(nextTotals);
 }
 
 export function resetAllData(): void {
@@ -327,19 +533,6 @@ export function resetAllData(): void {
       // ignore
     }
   }
-}
-
-export function defaultPuzzle(size: 4 | 6 | 9 = 9): PuzzleDef {
-  return {
-    id: "empty",
-    spec: makeSpec(size),
-    givens: "0".repeat(size * size),
-    solution: "0".repeat(size * size),
-    tier: "easy",
-    gradeScore: 0,
-    techniques: {},
-    source: "generated",
-  };
 }
 
 export function makeSession(

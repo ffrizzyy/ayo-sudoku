@@ -1,7 +1,7 @@
 import { digitMask, maskToDigits, popcount } from "./bitset";
 import { getGeometry, type Geometry } from "./board";
 import { buildCandidates } from "./solver";
-import { TIERS, type BoardSpec, type Tier, type Variant } from "./types";
+import { TIERS, type BoardSpec, type Tier } from "./types";
 
 export type TechniqueId =
   | "nakedSingle"
@@ -24,18 +24,6 @@ export const TECHNIQUE_WEIGHTS: Record<TechniqueId, number> = {
   xWing: 16,
   xyWing: 24,
   swordfish: 30,
-};
-
-export const TECHNIQUE_LABELS: Record<TechniqueId, string> = {
-  nakedSingle: "Naked single",
-  hiddenSingle: "Hidden single",
-  pointing: "Pointing pair",
-  nakedPair: "Naked pair",
-  hiddenPair: "Hidden pair",
-  nakedTriple: "Naked triple",
-  xWing: "X-Wing",
-  xyWing: "XY-Wing",
-  swordfish: "Swordfish",
 };
 
 export const TECHNIQUE_TIER: Record<TechniqueId, Tier> = {
@@ -556,11 +544,6 @@ export function tierDistance(a: Tier, b: Tier): number {
   return Math.abs((TIER_RANK.get(a) ?? 0) - (TIER_RANK.get(b) ?? 0));
 }
 
-/** Candidate advice for a single cell, used by auto candidates and hints. */
-export function trueCandidates(values: readonly number[], geom: Geometry): Uint16Array {
-  return buildCandidates(values, geom);
-}
-
 export function describeUnit(unitCells: readonly number[], geom: Geometry): string {
   if (unitCells.length === geom.size) {
     const first = unitCells[0];
@@ -574,8 +557,4 @@ export function describeUnit(unitCells: readonly number[], geom: Geometry): stri
   const boxes = new Set(unitCells.map((cell) => geom.boxOf[cell]));
   if (boxes.size === 1) return `box ${[...boxes][0] + 1}`;
   return "the grid";
-}
-
-export function variantFromSpec(spec: BoardSpec): Variant {
-  return spec.variant;
 }
