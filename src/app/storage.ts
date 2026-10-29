@@ -42,6 +42,18 @@ export interface SavedGame {
   dailyDate?: string;
 }
 
+export type SaveKey = string;
+
+/** Dailies are archived one per date, under `daily:YYYY-MM-DD`. */
+export function dailySaveKey(date: string): SaveKey {
+  return `daily:${date}`;
+}
+
+export function saveKeyFor(game: SavedGame): SaveKey {
+  if (game.mode === "daily" && game.dailyDate) return dailySaveKey(game.dailyDate);
+  return game.slot;
+}
+
 export interface GameResult {
   id: string;
   puzzleId: string;
@@ -131,23 +143,45 @@ function write(key: string, value: unknown): void {
   }
 }
 
-export function readSaves(): Partial<Record<SaveSlot, SavedGame>> {
-  return read<Partial<Record<SaveSlot, SavedGame>>>(KEYS.saves, {});
+export function readSaves(): Record<string, SavedGame> {
+  const stored = read<Record<string, SavedGame>>(KEYS.saves, {});
+  const saves: Record<string, SavedGame> = {};
+  let migrated = false;
+  for (const [key, game] of Object.entries(stored)) {
+    if (!game || typeof game !== "object") continue;
+    const target = key === "daily" && game.dailyDate ? dailySaveKey(game.dailyDate) : key;
+    if (target !== key) migrated = true;
+    const existing = saves[target];
+    if (!existing || (game.updatedAt ?? 0) > (existing.updatedAt ?? 0)) saves[target] = game;
+  }
+  // Older versions kept a single daily slot; move it onto its date on first read.
+  if (migrated) write(KEYS.saves, saves);
+  return saves;
 }
 
 export function writeSave(game: SavedGame): void {
   const saves = readSaves();
-  saves[game.slot] = game;
+  const key = saveKeyFor(game);
+  // Finished dailies live in the daily record; drop the replay log so the
+  // archive can keep one entry per day without hoarding whole games.
+  if (game.mode === "daily" && game.status !== "playing" && game.status !== "paused") {
+    if (key in saves) {
+      delete saves[key];
+      write(KEYS.saves, saves);
+    }
+    return;
+  }
+  saves[key] = game;
   write(KEYS.saves, saves);
 }
 
 export function mostRecentSave(exclude?: SaveSlot): SavedGame | null {
   const saves = readSaves();
-  const list = Object.entries(saves)
-    .filter(([slot, game]) => slot !== exclude && game && game.status !== "won" && game.status !== "lost")
-    .map(([, game]) => game!);
+  const list = Object.values(saves)
+    .filter((game) => game && game.slot !== exclude && game.status !== "won" && game.status !== "lost")
+    .sort((a, b) => b.updatedAt - a.updatedAt);
   if (!list.length) return null;
-  return list.sort((a, b) => b.updatedAt - a.updatedAt)[0];
+  return list[0];
 }
 
 export function readResults(): GameResult[] {
@@ -427,13 +461,15 @@ function mergeDaily(
 }
 
 function mergeSaves(
-  current: Partial<Record<SaveSlot, SavedGame>>,
-  incoming: Partial<Record<SaveSlot, SavedGame>>,
-): Partial<Record<SaveSlot, SavedGame>> {
+  current: Record<string, SavedGame>,
+  incoming: Record<string, SavedGame>,
+): Record<string, SavedGame> {
   const next = { ...current };
-  for (const [slot, game] of Object.entries(incoming) as [SaveSlot, SavedGame][]) {
-    const existing = next[slot];
-    if (!existing || (game.updatedAt ?? 0) > (existing.updatedAt ?? 0)) next[slot] = game;
+  for (const game of Object.values(incoming)) {
+    if (!game || typeof game !== "object") continue;
+    const key = saveKeyFor(game);
+    const existing = next[key];
+    if (!existing || (game.updatedAt ?? 0) > (existing.updatedAt ?? 0)) next[key] = game;
   }
   return next;
 }
@@ -477,7 +513,7 @@ export function applyBackup(data: Record<string, unknown>, mode: BackupMode = "m
   // Never write a section that would break the screens on the next load.
   if (badBackupSection(data)) return;
 
-  const saves = (data.saves as Partial<Record<SaveSlot, SavedGame>> | undefined) ?? {};
+  const saves = (data.saves as Record<string, SavedGame> | undefined) ?? {};
   const results = (data.results as GameResult[] | undefined) ?? [];
   const daily = (data.daily as Record<string, DailyRecord> | undefined) ?? {};
   const packs = (data.packProgress as PackProgress | undefined) ?? {};
@@ -486,7 +522,7 @@ export function applyBackup(data: Record<string, unknown>, mode: BackupMode = "m
   const incomingTotals = (data.totals as Totals | undefined) ?? null;
 
   if (mode === "replace") {
-    write(KEYS.saves, saves);
+    write(KEYS.saves, mergeSaves({}, saves));
     writeResults(results);
     write(KEYS.daily, daily);
     write(KEYS.packs, packs);

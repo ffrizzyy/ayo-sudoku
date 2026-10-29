@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { GameMode, SavedGame } from "../app/storage";
-import { readSaves } from "../app/storage";
+import { dailySaveKey, readSaves } from "../app/storage";
 import { useData, dateKey } from "../app/data";
 import { useSettings } from "../app/settings";
 import { useI18n } from "../i18n";
@@ -61,7 +61,7 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
   }, [saves]);
 
   const today = dateKey();
-  const dailySave = saves.daily && saves.daily.dailyDate === today ? saves.daily : null;
+  const dailySave = saves[dailySaveKey(today)] ?? null;
   const dailyDone = Boolean(data.daily[today]);
   const suggestion = suggestedTier(data.results);
 

@@ -56,6 +56,9 @@
   --same-bg: color-mix(in srgb, var(--accent) 34%, var(--surface));
   --same-ring: var(--accent-strong);
   --candidate-bg: color-mix(in srgb, var(--accent) 20%, var(--surface));
+  /* Matching pencil marks: a full luminance flip, so it reads without colour. */
+  --mark-hit-bg: var(--ink);
+  --mark-hit-ink: var(--surface);
   --selected-bg: var(--accent);
   --selected-ink: #ffffff;
   --conflict-bg: color-mix(in srgb, var(--danger) 18%, var(--surface));
@@ -111,6 +114,8 @@
   --same-bg: color-mix(in srgb, var(--accent) 42%, #1d1d20);
   --same-ring: var(--accent);
   --candidate-bg: color-mix(in srgb, var(--accent) 30%, #1d1d20);
+  --mark-hit-bg: #ffffff;
+  --mark-hit-ink: #111114;
   --conflict-bg: color-mix(in srgb, var(--danger) 30%, #1d1d20);
   --hint-bg: color-mix(in srgb, var(--warning) 30%, #1d1d20);
   --hint-unit-bg: color-mix(in srgb, var(--warning) 15%, #1d1d20);

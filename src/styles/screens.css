@@ -735,17 +735,67 @@
   text-transform: uppercase;
 }
 
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.calendar-nav-button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background 140ms var(--ease-out), color 140ms var(--ease-out);
+}
+
+.calendar-nav-button:not(:disabled):hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.calendar-nav-button:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+.calendar-slot {
+  display: grid;
+}
+
 .calendar-day {
   display: grid;
   place-items: center;
+  position: relative;
+  width: 100%;
   aspect-ratio: 1;
   max-height: 46px;
+  padding: 0;
+  border: 0;
   border-radius: 10px;
   background: var(--surface-2);
   color: var(--ink-2);
+  font-family: inherit;
   font-size: 0.72rem;
   font-weight: 750;
   font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 140ms var(--ease-out), color 140ms var(--ease-out);
+}
+
+.calendar-day:not(:disabled):hover {
+  background: var(--accent-ghost);
+  color: var(--accent);
+}
+
+.calendar-day:disabled {
+  cursor: default;
 }
 
 .calendar-day.is-blank {
@@ -756,9 +806,30 @@
   opacity: 0.32;
 }
 
+.calendar-day.is-unavailable {
+  opacity: 0.32;
+}
+
 .calendar-day.is-solved {
   background: var(--accent-soft);
   color: var(--accent);
+}
+
+.calendar-day.is-in-progress {
+  color: var(--accent);
+  font-weight: 850;
+  box-shadow: inset 0 0 0 1.5px var(--accent-soft);
+}
+
+.calendar-dot {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translateX(-50%);
 }
 
 .calendar-day.is-today {
@@ -774,6 +845,29 @@
 
 .calendar-note {
   margin-top: 11px;
+  font-size: 0.68rem;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+.calendar-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 0.68rem;
+  color: var(--ink-3);
+}
+
+.calendar-legend .calendar-dot {
+  position: static;
+  transform: none;
+  color: var(--accent);
+}
+
+.calendar-archive-note {
+  margin-top: 8px;
   font-size: 0.68rem;
   color: var(--ink-3);
   text-align: center;

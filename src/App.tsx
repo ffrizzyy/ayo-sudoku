@@ -225,19 +225,19 @@ export function App() {
     [generate, launch, push, t],
   );
 
-  const startDaily = useCallback(async () => {
+  const startDaily = useCallback(async (date?: string) => {
     const id = ++generationId.current;
-    const today = Date.now();
-    setLoading({ mode: "daily", tier: dailyTier(today) });
+    const stamp = date ? Date.parse(`${date}T00:00:00Z`) : Date.now();
+    setLoading({ mode: "daily", tier: dailyTier(stamp) });
     try {
       const puzzle = await generate({
-        tier: dailyTier(today),
-        seed: dailySeed(today),
+        tier: dailyTier(stamp),
+        seed: dailySeed(stamp),
         size: 9,
       });
       if (id !== generationId.current) return;
       const session = makeSession(puzzle, "daily", "daily");
-      session.dailyDate = dailyDate(today);
+      session.dailyDate = dailyDate(stamp);
       launch(session, "/daily");
     } catch {
       push(t("toast.noPuzzle"));
@@ -382,7 +382,13 @@ export function App() {
       </div>
     );
   } else if (path === "/daily") {
-    content = <Daily onPlay={() => void startDaily()} onResume={resumeSession} onNavigate={navigate} />;
+    content = (
+      <Daily
+        onPlay={(date) => void startDaily(date)}
+        onResume={resumeSession}
+        onNavigate={navigate}
+      />
+    );
   } else if (path === "/packs") {
     content = <Packs onNavigate={navigate} />;
   } else if (path.startsWith("/pack/")) {

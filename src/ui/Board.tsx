@@ -77,6 +77,13 @@ export function Board({
     return values;
   }, [selected, cells, highlightDigit]);
 
+  // A selected digit (or one tapped on the pad) also emphasises the matching
+  // pencil marks in other cells, in both corner and center layouts.
+  const markDigits = useMemo(() => {
+    if (!highlightCandidates) return new Set<number>();
+    return selectedValues;
+  }, [highlightCandidates, selectedValues]);
+
   const peers = useMemo(() => {
     if (!highlightPeers) return new Set<number>();
     const set = new Set<number>();
@@ -253,7 +260,10 @@ export function Board({
                         {Array.from({ length: spec.size }, (_, index) => {
                           const digit = index + 1;
                           return (
-                            <span key={digit} className="mark-slot">
+                            <span
+                              key={digit}
+                              className={`mark-slot ${markDigits.has(digit) ? "is-mark-hit" : ""}`}
+                            >
                               {cornerDigits.includes(digit) ? displayDigit(digit, digitStyle) : ""}
                             </span>
                           );
@@ -263,7 +273,10 @@ export function Board({
                     {centerDigits.length ? (
                       <span className="center-marks" aria-hidden="true">
                         {centerDigits.map((digit) => (
-                          <span key={digit} className="mark">
+                          <span
+                            key={digit}
+                            className={`mark ${markDigits.has(digit) ? "is-mark-hit" : ""}`}
+                          >
                             {displayDigit(digit, digitStyle)}
                           </span>
                         ))}

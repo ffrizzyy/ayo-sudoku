@@ -825,6 +825,20 @@
   display: block;
 }
 
+/* Matching pencil marks get a weight and luminance change, in both layouts. */
+.corner-marks .mark-slot.is-mark-hit,
+.center-marks .mark.is-mark-hit {
+  background: var(--mark-hit-bg);
+  color: var(--mark-hit-ink);
+  border-radius: 4px;
+  font-weight: 900;
+  box-shadow: 0 0 0 1px var(--mark-hit-bg);
+}
+
+.center-marks .mark.is-mark-hit {
+  padding: 0 0.12em;
+}
+
 .large-marks .corner-marks {
   color: var(--ink);
   font-weight: 800;

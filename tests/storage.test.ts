@@ -1,21 +1,28 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   applyBackup,
+  dailySaveKey,
   exportBackup,
   inspectBackup,
+  makeSession,
+  mostRecentSave,
   readAchievements,
   readDaily,
   readMeta,
   readResults,
+  readSaves,
   readTotals,
   resetAllData,
   writeAchievements,
   writeDaily,
   writeMeta,
   writeResults,
+  writeSave,
   writeTotals,
   type GameResult,
+  type SavedGame,
 } from "../src/app/storage";
+import { makeSpec, type PuzzleDef } from "../src/engine/types";
 
 class MemoryStorage implements Storage {
   private map = new Map<string, string>();
@@ -227,5 +234,68 @@ describe("backup import modes", () => {
     expect(readAchievements()).toEqual({});
     expect(readDaily()).toEqual({});
     expect(readTotals()).toEqual({ schemaVersion: 1, games: 2, wins: 2, best: {} });
+  });
+});
+
+const DAILY_PUZZLE: PuzzleDef = {
+  id: "daily-2026-10-27",
+  spec: makeSpec(9),
+  givens: "0".repeat(81),
+  solution: "1".repeat(81),
+  tier: "easy",
+  gradeScore: 0,
+  techniques: {},
+  source: "generated",
+};
+
+function dailyGame(date: string, overrides: Partial<SavedGame> = {}): SavedGame {
+  return {
+    ...makeSession(DAILY_PUZZLE, "daily", "daily"),
+    dailyDate: date,
+    ...overrides,
+  };
+}
+
+describe("daily save slots", () => {
+  beforeEach(() => {
+    vi.stubGlobal("localStorage", new MemoryStorage());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("archives each daily under its own date", () => {
+    writeSave(dailyGame("2026-10-27"));
+    writeSave(dailyGame("2026-10-28"));
+
+    const saves = readSaves();
+    expect(Object.keys(saves).sort()).toEqual([
+      dailySaveKey("2026-10-27"),
+      dailySaveKey("2026-10-28"),
+    ]);
+    expect(saves[dailySaveKey("2026-10-27")].dailyDate).toBe("2026-10-27");
+  });
+
+  it("moves a legacy single daily slot onto its date", () => {
+    localStorage.setItem(
+      "ayo.saves.v1",
+      JSON.stringify({ daily: dailyGame("2026-10-27"), classic: makeSession(DAILY_PUZZLE, "classic", "classic") }),
+    );
+
+    const saves = readSaves();
+    expect(saves[dailySaveKey("2026-10-27")].dailyDate).toBe("2026-10-27");
+    expect(saves.daily).toBeUndefined();
+    expect(saves.classic.mode).toBe("classic");
+  });
+
+  it("drops the replay log when a daily is finished", () => {
+    const game = dailyGame("2026-10-27");
+    writeSave(game);
+    expect(readSaves()[dailySaveKey("2026-10-27")]).toBeTruthy();
+
+    writeSave({ ...game, status: "won", updatedAt: game.updatedAt + 1000 });
+    expect(readSaves()[dailySaveKey("2026-10-27")]).toBeUndefined();
+    expect(mostRecentSave()).toBeNull();
   });
 });
