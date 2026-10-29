@@ -209,7 +209,7 @@ export function ShareSheet({
   tierLabel: string;
   timeLabel: string;
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { markShared } = useData();
   const { push } = useToast();
   const [busy, setBusy] = useState(false);
@@ -299,7 +299,7 @@ export function ShareSheet({
         </div>
       </div>
       <p className="share-note">
-        <Icon name="info" size={15} /> {locale === "id" ? "Kode berisi teka-teki, bukan progresmu." : "The code carries the puzzle, not your progress."}
+        <Icon name="info" size={15} /> {t("share.note")}
       </p>
     </Sheet>
   );

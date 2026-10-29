@@ -1,4 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { CREDITS } from "../config/credits";
+import { FALLBACK_COPY } from "../i18n/copy";
 
 interface State {
   error: Error | null;
@@ -18,22 +20,18 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
 
   render() {
     if (!this.state.error) return this.props.children;
-    const indonesian = document.documentElement.lang === "id";
+    const copy = document.documentElement.lang === "id" ? FALLBACK_COPY.id : FALLBACK_COPY.en;
     return (
       <div className="error-screen" role="alert">
         <div className="error-bubbles" aria-hidden="true">
           <span /><span /><span />
         </div>
         <span className="error-mark">!</span>
-        <h1>{indonesian ? "Ada yang goyang." : "Something wobbled."}</h1>
-        <p>
-          {indonesian
-            ? "Permainanmu aman. Muat ulang layar atau kembali ke beranda."
-            : "Your game is safe. Reload the screen or head home."}
-        </p>
+        <h1>{copy.title}</h1>
+        <p>{copy.body}</p>
         <div className="error-actions">
           <button type="button" className="btn btn-primary btn-md" onClick={() => window.location.reload()}>
-            {indonesian ? "Muat ulang" : "Reload"}
+            {copy.reload}
           </button>
           <button
             type="button"
@@ -43,10 +41,12 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
               window.location.reload();
             }}
           >
-            {indonesian ? "Ke beranda" : "Go home"}
+            {copy.home}
           </button>
         </div>
-        <small>Ayo Sudoku! · ffrizzy</small>
+        <small>
+          {CREDITS.appName} · {CREDITS.author}
+        </small>
       </div>
     );
   }

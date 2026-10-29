@@ -59,7 +59,7 @@ Open <http://localhost:5173>.
 | `pnpm check` | Typecheck, run unit tests and verify EN/ID key parity. |
 | `pnpm test` | Run the engine unit tests. |
 | `pnpm test:watch` | Run tests in watch mode. |
-| `pnpm i18n:check` | Check that every translation key exists in both languages. |
+| `pnpm i18n:check` | Check that every translation key, lesson step and fallback string exists in both languages. |
 | `pnpm gen:pack` | Regenerate the pack puzzle data from the engine. |
 | `pnpm typecheck` | TypeScript only. |
 
@@ -73,7 +73,7 @@ Benchmarks live in `scripts/bench.ts` and can be run with `pnpm tsx scripts/benc
 | Build | Vite 7.3 |
 | Styling | Handwritten CSS with custom properties, no utility framework |
 | Routing | Small hash router in `src/App.tsx` |
-| i18n | Typed custom dictionary in `src/i18n` |
+| i18n | Typed custom dictionary in `src/i18n/copy.ts` |
 | Persistence | `localStorage` with versioned keys and JSON backup/restore |
 | Puzzle generation | Pure TypeScript engine in a Web Worker |
 | Tests | Vitest |
@@ -88,7 +88,7 @@ src/
   config/     credits (the only place the author string lives)
   data/       generated pack puzzles
   engine/     pure puzzle engine: geometry, solver, generator, grader, hints, share codes
-  i18n/       English and Indonesian dictionaries plus the provider
+  i18n/       copy.ts holds every user-facing string; index.tsx is the provider
   screens/    Home, Game, Daily, Packs, Learn, Stats, Settings, About, Import, Onboarding
   styles/     tokens, base, components, screens
   ui/         board, number pad, sheets, icons, confetti, primitives

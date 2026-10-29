@@ -1,4 +1,4 @@
-import { en, id } from "../src/i18n";
+import { FALLBACK_COPY, LESSON_STEPS, en, id } from "../src/i18n/copy";
 
 function flatten(value: unknown, prefix = ""): Record<string, string> {
   if (typeof value === "string") return { [prefix]: value };
@@ -33,8 +33,29 @@ for (const key of Object.keys(indonesian)) {
   }
 }
 
+// Lesson steps live in the same copy file; keep both languages in step.
+for (const [lesson, steps] of Object.entries(LESSON_STEPS)) {
+  if (!steps.en.length || !steps.id.length) {
+    console.error(`Lesson steps missing: ${lesson}`);
+    failed = true;
+  } else if (steps.en.length !== steps.id.length) {
+    console.error(`Lesson step count mismatch: ${lesson} (${steps.en.length} en, ${steps.id.length} id)`);
+    failed = true;
+  }
+}
+
+// Crash-screen copy renders before the i18n provider, so it is checked here.
+for (const key of Object.keys(FALLBACK_COPY.en)) {
+  if (!(key in FALLBACK_COPY.id)) {
+    console.error(`Missing fallback copy in id: ${key}`);
+    failed = true;
+  }
+}
+
 if (failed) {
   console.error("i18n check failed.");
   process.exit(1);
 }
-console.log(`i18n check passed: ${Object.keys(english).length} keys in en and id.`);
+console.log(
+  `i18n check passed: ${Object.keys(english).length} keys in en and id, ${Object.keys(LESSON_STEPS).length} lessons in sync.`,
+);

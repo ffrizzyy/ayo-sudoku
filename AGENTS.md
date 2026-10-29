@@ -22,7 +22,8 @@ Run `pnpm check` before every commit and `pnpm build` before every push. This re
 - `src/app/` — persistence, settings, stats, achievements, audio, packs, lessons, generator hook.
 - `src/screens/` — one component per route.
 - `src/ui/` — board, number pad, sheets, icons, primitives.
-- `src/i18n/index.tsx` — EN and ID dictionaries and the `useI18n()` hook.
+- `src/i18n/copy.ts` — every user-facing string: the EN and ID dictionaries, lesson steps and the crash-screen fallback.
+- `src/i18n/index.tsx` — the `useI18n()` hook, lookup/interpolation and formatters.
 - `src/styles/` — tokens, base, components, screens. Plain CSS; no Tailwind.
 - `src/config/credits.ts` — the only source of the author string.
 - `public/` — manifest, icons, service worker, theme bootstrap, headers.
@@ -31,7 +32,7 @@ Run `pnpm check` before every commit and `pnpm build` before every push. This re
 ## Rules
 
 1. **Credit:** the app is by `ffrizzy` (https://ffrizzy.vercel.app/). Import `CREDITS`; do not hard-code the name in new UI. The name must stay in the footer, About, win sheet, metadata, manifest, package.json, LICENSE, README and CITATION.
-2. **i18n:** every user-facing string goes through `src/i18n`. Add the key to both `en` and `id`, then run `pnpm i18n:check`. Never ship English-only UI.
+2. **i18n:** every user-facing string goes through `src/i18n/copy.ts`. Add the key to both `en` and `id`, then run `pnpm i18n:check`. Never ship English-only UI, and never leave copy in a screen.
 3. **Engine purity:** engine modules are deterministic, framework-free and unit tested. Add a test for every bug fix.
 4. **Storage:** keys are versioned (`ayo.*.v1`). Change the schema version and migrate when the shape changes. Never send local data to a server.
 5. **PWA:** bump the cache version in `public/sw.js` when changing shell assets. Keep `theme.js` external; the CSP forbids inline scripts.
