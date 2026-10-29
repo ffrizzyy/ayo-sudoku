@@ -2,6 +2,27 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.0.3] — 2026-10-29
+
+A player-requested release: past daily puzzles are playable again, and the
+pencil marks of the digit you are looking at stand out.
+
+### Added
+
+- **Daily archive.** The Daily screen is now a month calendar with previous and next navigation. Every day since the 1.0.0 release is playable: tap a past day to start its deterministic puzzle, or to resume it if you left it unfinished. Solved days show a star and can be replayed; an in-progress day shows a dot and a legend, and future days stay disabled.
+- Daily saves are stored one per date in `ayo.saves.v1` under `daily:YYYY-MM-DD`, so an unfinished board no longer disappears when the next day starts. A legacy single daily slot is migrated onto its date the first time saves are read.
+- Backups merge and replace saves by their resolved date key instead of the raw slot name.
+
+### Changed
+
+- **Matching pencil marks are emphasised.** Selecting a cell (or tapping a digit on the pad) now also bolds the same digit inside other cells' corner and center marks. The emphasis is a full black/white luminance chip plus weight 900, so it reads without colour. It follows the existing Candidates highlight setting.
+- Replaying a solved daily records the better result (more stars, then a faster time), so a replay cannot lower a stored day.
+
+### Fixed
+
+- Finished daily boards are pruned from the save log once the completion is recorded, so the archive does not keep a full command history per solved day.
+- The Daily calendar announces each day's state to screen readers (play, solved, in progress, today, not out yet, unavailable).
+
 ## [1.0.2] — 2026-10-28
 
 A maintenance release: progress totals that cannot shrink, a real choice when

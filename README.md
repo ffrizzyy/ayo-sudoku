@@ -20,7 +20,7 @@ Ayo Sudoku! is a local-first Sudoku app that feels at home on a phone. There are
 | Mode | What it is |
 | --- | --- |
 | **Classic** | Endless puzzles across six difficulty tiers and three board sizes (4x4, 6x6, 9x9). |
-| **Daily** | One deterministic puzzle per UTC day, with its own streak and calendar history. |
+| **Daily** | One deterministic puzzle per UTC day, with its own streak and a playable archive of past days. |
 | **Zen** | No timer pressure, no mistake limit, and generous hints. |
 | **Challenge** | Fewer lives, no reveals, higher stakes. |
 | **Packs** | 24 handcrafted puzzles in three star-gated packs, credited to ffrizzy. |
@@ -105,6 +105,7 @@ See [docs/architecture.md](docs/architecture.md) for the data flow and layer rul
 
 - **Seeded generation.** A puzzle is a pure function of its seed. The generator fills a complete grid with a seeded PRNG, carves clues symmetrically, checks uniqueness with a bitmask solver, then grades the result with human-style techniques.
 - **Daily determinism.** The seed is `ayo-daily-YYYY-MM-DD` in UTC, so every device gets the same puzzle. The tier follows the weekday: cozy, easy, medium, medium, hard, expert, medium.
+- **Daily archive.** Because a daily is reproducible from its date, the Daily screen can offer a calendar of past days. Saves live under `daily:YYYY-MM-DD`, so an unfinished day can be resumed later; solved days keep their record and can be replayed. The archive starts at `DAILY_EPOCH` (2026-10-26), the first release, and does not invent earlier dates.
 - **Stars.** One star for finishing. Two stars when you make at most two mistakes and use no reveal hints. Three stars when you also finish under the tier's par time.
 - **Share codes.** `src/engine/share.ts` encodes the size, variant, givens and solution with a CRC check, producing a compact `AYO1-…` code. The importer also accepts 16, 36 or 81 character grids.
 - **Packs.** `src/data/packs.json` is generated and graded by the engine, then shipped as static data. See [docs/puzzle-pack-format.md](docs/puzzle-pack-format.md).
@@ -116,7 +117,7 @@ Everything is stored under `ayo.*` keys in `localStorage`:
 | Key | Contents |
 | --- | --- |
 | `ayo.settings.v1` | Theme, accent, input and accessibility preferences |
-| `ayo.saves.v1` | One resumable save per mode |
+| `ayo.saves.v1` | One resumable save per mode; dailies are kept per date under `daily:YYYY-MM-DD` |
 | `ayo.results.v1` | Finished games (capped history) |
 | `ayo.daily.v1` | Daily results and streak |
 | `ayo.packs.v1` | Pack progress and stars |
