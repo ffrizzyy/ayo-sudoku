@@ -3,6 +3,7 @@ import { getGeometry, type BoardSpec } from "../engine";
 import type { CellSnapshot } from "../app/storage";
 import { useI18n } from "../i18n";
 import { maskToDigits } from "../engine/bitset";
+import { isMarkHit } from "./marks";
 
 export interface BoardHint {
   cells: number[];
@@ -262,7 +263,9 @@ export function Board({
                           return (
                             <span
                               key={digit}
-                              className={`mark-slot ${markDigits.has(digit) ? "is-mark-hit" : ""}`}
+                              className={`mark-slot ${
+                                isMarkHit(digit, cornerDigits, markDigits) ? "is-mark-hit" : ""
+                              }`}
                             >
                               {cornerDigits.includes(digit) ? displayDigit(digit, digitStyle) : ""}
                             </span>
@@ -275,7 +278,7 @@ export function Board({
                         {centerDigits.map((digit) => (
                           <span
                             key={digit}
-                            className={`mark ${markDigits.has(digit) ? "is-mark-hit" : ""}`}
+                            className={`mark ${isMarkHit(digit, centerDigits, markDigits) ? "is-mark-hit" : ""}`}
                           >
                             {displayDigit(digit, digitStyle)}
                           </span>
