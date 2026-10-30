@@ -1,6 +1,6 @@
 /* Ayo Sudoku! service worker. Offline shell plus runtime caching. Made by ffrizzy. */
 
-const VERSION = "ayo-sudoku-v1.0.7";
+const VERSION = "ayo-sudoku-v1.0.8";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const SHELL = [

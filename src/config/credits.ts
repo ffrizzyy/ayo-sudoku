@@ -7,7 +7,7 @@ export const CREDITS = {
   appNameShort: "Ayo Sudoku",
   author: "ffrizzy",
   authorUrl: "https://ffrizzy.vercel.app/",
-  version: "1.0.5",
+  version: "1.0.6",
   license: "MIT",
   tagline: "Ayo means let's go.",
   inspirations: [

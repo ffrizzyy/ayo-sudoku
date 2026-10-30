@@ -2,6 +2,18 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.0.6] — 2026-10-30
+
+Every screen has a shape of its own on a desktop, and pencil marks stop lighting up in slots that hold no number.
+
+### Fixed
+
+- **Empty pencil-mark slots no longer highlight.** Selecting a cell's digit, or tapping a digit on the pad, tinted every corner slot for that digit — including the empty ones, which made a blank cell look half-pencilled. A slot now lights only when the digit is active *and* actually written in that cell. The rule is `isMarkHit()` in `src/ui/marks.ts`, covered by `tests/marks.test.ts`.
+
+### Changed
+
+- **One layout per screen instead of one layout for all.** The title bar sat at 1180px while every body was pinned at 880px (700–780 for About, Import and Settings), so headings never lined up with the cards below them. Each screen now carries a `--screen-w` that drives both, and from 900px up the pages compose differently: Daily keeps today's card beside the archive panel, Packs becomes a shelf (two-up at 900px, three-up at 1080px), Learn shows the curriculum in two columns, Stats leads with six tiles over a chart/summary row and a full-width achievement grid, Settings reads as a two-column masonry, About puts the story beside the reference cards, and Import shows the live preview next to the paste box. Phones keep the single-column stack.
+
 ## [1.0.5] — 2026-10-30
 
 A full copy refresh. Every visible sentence was rewritten in both languages, in the same file and with every key kept.

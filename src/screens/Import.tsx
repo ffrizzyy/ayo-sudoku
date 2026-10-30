@@ -146,58 +146,60 @@ export function Import({ initialCode, onPlay, onBack }: ImportProps) {
           ) : null}
         </section>
 
-        {puzzle ? (
-          <section className="import-preview-card">
-            <div className="card-head">
-              <h2>{t("import.preview")}</h2>
-              <div className="import-pills">
-                <Pill tone="accent">{t(`tier.${puzzle.tier}`)}</Pill>
-                <Pill tone="neutral">{puzzle.spec.size}×{puzzle.spec.size}</Pill>
-                <Pill tone="neutral">
-                  {source === "code" ? t("import.fromTemplate") : t("import.fromGrid")}
-                </Pill>
+        <div className="import-side">
+          {puzzle ? (
+            <section className="import-preview-card">
+              <div className="card-head">
+                <h2>{t("import.preview")}</h2>
+                <div className="import-pills">
+                  <Pill tone="accent">{t(`tier.${puzzle.tier}`)}</Pill>
+                  <Pill tone="neutral">{puzzle.spec.size}×{puzzle.spec.size}</Pill>
+                  <Pill tone="neutral">
+                    {source === "code" ? t("import.fromTemplate") : t("import.fromGrid")}
+                  </Pill>
+                </div>
               </div>
-            </div>
-            <div className="import-board-preview">
-              <Board
-                spec={puzzle.spec}
-                cells={cells}
-                selected={new Set()}
-                wrong={new Set()}
-                highlightSame={false}
-                highlightPeers={false}
-                highlightCandidates
-                digitStyle={settings.digitStyle}
-                onSelect={noop}
-              />
-            </div>
-            <div className="import-meta">
-              <span>
-                <strong>{puzzle.givens.replace(/0/g, "").length}</strong> {t("game.clues")}
-              </span>
-              <span>
-                {t("common.difficulty")}: <strong>{t(`tier.${puzzle.tier}`)}</strong>
-              </span>
-            </div>
-            <Button
-              variant="primary"
-              size="lg"
-              full
-              icon="play"
-              onClick={() => onPlay(puzzle)}
-            >
-              {t("import.play")}
-            </Button>
-          </section>
-        ) : null}
+              <div className="import-board-preview">
+                <Board
+                  spec={puzzle.spec}
+                  cells={cells}
+                  selected={new Set()}
+                  wrong={new Set()}
+                  highlightSame={false}
+                  highlightPeers={false}
+                  highlightCandidates
+                  digitStyle={settings.digitStyle}
+                  onSelect={noop}
+                />
+              </div>
+              <div className="import-meta">
+                <span>
+                  <strong>{puzzle.givens.replace(/0/g, "").length}</strong> {t("game.clues")}
+                </span>
+                <span>
+                  {t("common.difficulty")}: <strong>{t(`tier.${puzzle.tier}`)}</strong>
+                </span>
+              </div>
+              <Button
+                variant="primary"
+                size="lg"
+                full
+                icon="play"
+                onClick={() => onPlay(puzzle)}
+              >
+                {t("import.play")}
+              </Button>
+            </section>
+          ) : null}
 
-        <section className="import-help">
-          <h2>
-            <Icon name="info" size={18} /> {t("import.title")}
-          </h2>
-          <p>{t("import.subtitle")}</p>
-          <p className="import-help-note">{t("import.helpNote")}</p>
-        </section>
+          <section className="import-help">
+            <h2>
+              <Icon name="info" size={18} /> {t("import.title")}
+            </h2>
+            <p>{t("import.subtitle")}</p>
+            <p className="import-help-note">{t("import.helpNote")}</p>
+          </section>
+        </div>
       </main>
     </div>
   );

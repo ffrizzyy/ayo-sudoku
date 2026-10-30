@@ -6,7 +6,7 @@
 .screen-header {
   position: relative;
   z-index: 1;
-  width: min(100%, var(--maxw));
+  width: min(100%, var(--screen-w, 880px));
   margin: 0 auto;
   padding: clamp(18px, 4vw, 38px) clamp(16px, 4vw, 34px) 10px;
   display: flex;
@@ -561,6 +561,29 @@
 .daily-screen,
 .packs-screen,
 .learn-screen,
+.stats-screen {
+  --screen-w: 1080px;
+}
+
+.settings-screen {
+  --screen-w: 1000px;
+}
+
+.about-screen {
+  --screen-w: 980px;
+}
+
+.import-screen {
+  --screen-w: 940px;
+}
+
+.lesson-screen {
+  --screen-w: 760px;
+}
+
+.daily-screen,
+.packs-screen,
+.learn-screen,
 .stats-screen,
 .settings-screen,
 .about-screen,
@@ -578,7 +601,7 @@
 .import-main {
   position: relative;
   z-index: 1;
-  width: min(100%, 880px);
+  width: min(100%, var(--screen-w, 880px));
   margin: 0 auto;
   padding: 10px clamp(16px, 4vw, 34px) 34px;
   display: flex;
@@ -2073,7 +2096,7 @@
 }
 
 .settings-main {
-  width: min(100%, 780px);
+  width: min(100%, var(--screen-w, 780px));
 }
 
 .settings-card {
@@ -2209,7 +2232,11 @@
   align-items: center;
   text-align: center;
   gap: 8px;
-  padding: calc(40px + var(--safe-top)) 20px 22px;
+  /* Same box and gutter as .about-main, so the app name sits directly over
+     the cards instead of floating on the full viewport width. */
+  width: min(100%, var(--screen-w, 980px));
+  margin: 0 auto;
+  padding: calc(40px + var(--safe-top)) clamp(16px, 4vw, 34px) 22px;
 }
 
 .about-mark {
@@ -2237,7 +2264,7 @@
 }
 
 .about-main {
-  width: min(100%, 700px);
+  width: min(100%, var(--screen-w, 700px));
   gap: 12px;
 }
 
@@ -2395,7 +2422,14 @@
 /* ---------- Import ---------- */
 
 .import-main {
-  width: min(100%, 760px);
+  width: min(100%, var(--screen-w, 760px));
+}
+
+.import-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
 }
 
 .import-card,
@@ -3592,6 +3626,178 @@
 
   [data-handed="left"] .game-layout > * {
     direction: ltr;
+  }
+}
+
+/* ---------- Wide screens: one composition per screen ---------- */
+
+@media (min-width: 900px) {
+  /* Daily: today's card stays on the left, the archive becomes a standing
+     panel on the right instead of another row in the stack. */
+  .daily-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.04fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .daily-hero {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .daily-streak-card {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .daily-learn-link {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .daily-calendar {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
+  /* Packs: a two-up shelf of illustrated cards. */
+  .packs-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .packs-list .pack-card {
+    height: 100%;
+  }
+
+  /* Learn: the curriculum reads as a two-column board. */
+  .learn-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    align-items: start;
+  }
+
+  .learn-summary {
+    grid-column: 1 / -1;
+  }
+
+  /* Stats: six tiles across the top, then chart and summary side by side. */
+  .stats-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  .stat-tiles {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .stats-chart-card {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .stats-tier-card {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .achievement-card {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .achievement-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .recent-card {
+    grid-column: 1;
+    grid-row: 4;
+  }
+
+  .streak-card {
+    grid-column: 2;
+    grid-row: 4;
+  }
+
+  /* Settings: a masonry of independent cards, not one long scroll. */
+  .settings-main {
+    display: block;
+    columns: 2;
+    column-gap: 14px;
+  }
+
+  .settings-main .settings-card {
+    break-inside: avoid;
+    margin-bottom: 14px;
+  }
+
+  /* About: the story on the left, the reference material on the right. */
+  .about-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
+
+  .author-card,
+  .about-credit-block,
+  .about-actions {
+    grid-column: 1 / -1;
+  }
+
+  /* Import: the paste box and its live preview sit side by side. */
+  .import-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  .import-main > .import-card {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .import-side {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+@media (min-width: 1080px) {
+  /* Packs: three shelves across, art as a banner so each card still reads as
+     a collection rather than a row in a list. */
+  .packs-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .packs-list .pack-card {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 12px;
+  }
+
+  .packs-list .pack-art {
+    width: 100%;
+    height: 104px;
+  }
+
+  .packs-list .pack-action {
+    justify-self: end;
+  }
+
+  .achievement-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
