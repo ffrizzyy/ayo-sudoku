@@ -1,7 +1,7 @@
 {
   "name": "ayo-sudoku",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "description": "A friendly, polished Sudoku game for the browser. Play offline, learn techniques, and chase stars.",
   "author": "ffrizzy (https://ffrizzy.vercel.app/)",

@@ -2,6 +2,21 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.0.5] — 2026-10-30
+
+A full copy refresh. Every visible sentence was rewritten in both languages, in the same file and with every key kept.
+
+### Changed
+
+- **New wording across the app.** Home, game, daily, packs, learn, stats, achievements, settings, about, import, share, onboarding, toasts and the screen-reader announcements all use the refreshed EN and ID copy. Lesson steps and the crash-screen fallback were refreshed too.
+- `src/i18n/copy.ts` was replaced wholesale, so the voice is consistent end to end. The supplied file kept all 466 keys and `{placeholders}` unchanged; the check now reports 467 after the Skyscraper label below.
+
+### Fixed
+
+- Settings rows keep their label readable on narrow screens: a wide segmented control, swatch row or select now wraps onto its own line instead of covering the words at 320px.
+- Corrected wording that was mistranslated or misspelt in the supplied copy: "at most" in the swordfish tip, "Dua Bahasa", "orisinal", "Angka" for the number pad label, "Dari papan yang diketik", and the X-Wing elimination direction in Indonesian.
+- The Skyscraper lesson no longer borrows the "pointing pair" label; it has its own `tech.skyscraper` entry in both languages.
+
 ## [1.0.4] — 2026-10-29
 
 The grids are easier to read, and every word in the app now lives in one file.
