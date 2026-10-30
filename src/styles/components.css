@@ -230,6 +230,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 16px;
   padding: 14px 0;
   border-bottom: 1px solid var(--line);
@@ -252,6 +253,16 @@
   gap: 3px;
   min-width: 0;
   flex: 1;
+}
+
+/* Keep the label readable; when it cannot sit beside a wide control, the
+   control wraps onto its own line instead of covering the words. */
+.setting-copy {
+  min-width: 8.5rem;
+}
+
+.setting-control {
+  margin-left: auto;
 }
 
 .switch-label,
