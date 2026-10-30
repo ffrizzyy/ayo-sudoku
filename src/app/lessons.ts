@@ -83,7 +83,7 @@ export const LESSONS: LessonDefinition[] = [
     index: 7,
     tier: "expert",
     accent: "orange",
-    technique: "pointing",
+    technique: "skyscraper",
     icon: "eye",
     steps: LESSON_STEPS.skyscraper,
   },
