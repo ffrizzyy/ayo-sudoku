@@ -16,6 +16,7 @@ A full copy refresh. Every visible sentence was rewritten in both languages, in 
 - Settings rows keep their label readable on narrow screens: a wide segmented control, swatch row or select now wraps onto its own line instead of covering the words at 320px.
 - Corrected wording that was mistranslated or misspelt in the supplied copy: "at most" in the swordfish tip, "Dua Bahasa", "orisinal", "Angka" for the number pad label, "Dari papan yang diketik", and the X-Wing elimination direction in Indonesian.
 - The Skyscraper lesson no longer borrows the "pointing pair" label; it has its own `tech.skyscraper` entry in both languages.
+- The onboarding language step shows each language's own sample phrase ("Let's play!" and "Mulai bermain!") instead of the Indonesian phrase on both cards, and reads it from `home.start` rather than a literal.
 
 ## [1.0.4] — 2026-10-29
 

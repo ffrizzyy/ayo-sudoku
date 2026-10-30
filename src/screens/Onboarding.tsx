@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSettings, type Settings } from "../app/settings";
-import { useI18n } from "../i18n";
+import { dictionaries, useI18n } from "../i18n";
 import { Board } from "../ui/Board";
 import { NumberPad } from "../ui/NumberPad";
 import { Button, Pill } from "../ui/primitives";
@@ -111,7 +111,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
               >
                 <span className="language-code">EN</span>
                 <span className="language-name">{t("settings.english")}</span>
-                <span className="language-sample">Ayo, mulai!</span>
+                <span className="language-sample">{dictionaries.en.home.start}</span>
                 {locale === "en" ? <Icon name="check-circle" size={20} /> : null}
               </button>
               <button
@@ -123,7 +123,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
               >
                 <span className="language-code">ID</span>
                 <span className="language-name">{t("settings.indonesian")}</span>
-                <span className="language-sample">Ayo, mulai!</span>
+                <span className="language-sample">{dictionaries.id.home.start}</span>
                 {locale === "id" ? <Icon name="check-circle" size={20} /> : null}
               </button>
             </div>
