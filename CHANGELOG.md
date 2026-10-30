@@ -2,6 +2,16 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.0.7] — 2026-10-30
+
+Every screen now lives inside the same page frame, so the title and cards no longer jump left or right when you change tabs.
+
+### Changed
+
+- **One page frame for every screen.** `--screen-w` in `src/styles/tokens.css` is now a single 1080px value shared by Daily, Packs, Learn, the lesson pages, Stats, Settings, About and Import. Headers, bodies and the lesson top bar all resolve to it, so the inner edge sits at the same place on every page at every width. Previously each screen picked its own width (1080 down to 760), which made navigation feel like the layout shifted.
+- Lesson pages join the frame and gain a composition: at 900px and up the steps and warning sit in the left column, with practice, actions and the next-lesson card on the right. On phones the lesson still stacks in one column.
+- Home keeps its landing-page treatment (brand header, narrow hero column); it is not one of the tabbed content screens.
+
 ## [1.0.6] — 2026-10-30
 
 Every screen has a shape of its own on a desktop, and pencil marks stop lighting up in slots that hold no number.

@@ -140,57 +140,61 @@ export function Lesson({ lessonId, onBack, onNavigate, onPractice }: LessonProps
           </div>
         </section>
 
-        <section className="lesson-block">
-          <h2>
-            <span className="section-number">1</span> {t("learn.steps")}
-          </h2>
-          <ol className="lesson-steps">
-            {steps.map((step, index) => (
-              <li key={index}>
-                <span className="lesson-step-number">{index + 1}</span>
-                <span>{step}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
+        <div className="lesson-body">
+          <section className="lesson-block">
+            <h2>
+              <span className="section-number">1</span> {t("learn.steps")}
+            </h2>
+            <ol className="lesson-steps">
+              {steps.map((step, index) => (
+                <li key={index}>
+                  <span className="lesson-step-number">{index + 1}</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
 
-        <section className="lesson-tip">
-          <Icon name="bulb" size={20} />
-          <div>
-            <strong>{t("learn.watchOut")}</strong>
-            <p>{tip}</p>
+          <section className="lesson-tip">
+            <Icon name="bulb" size={20} />
+            <div>
+              <strong>{t("learn.watchOut")}</strong>
+              <p>{tip}</p>
+            </div>
+          </section>
+        </div>
+
+        <div className="lesson-aside">
+          <section className="lesson-practice">
+            <div className="lesson-practice-copy">
+              <p className="screen-eyebrow">{t("learn.practiceStarts", { tier: t(`tier.${lesson.tier}`) })}</p>
+              <h2>{t("learn.practice")}</h2>
+              <p>{t("learn.practiceHint")}</p>
+              <small>{t("learn.practiceNote")}</small>
+            </div>
+            <Button variant="primary" size="lg" icon="play" onClick={() => onPractice(lesson)}>
+              {t("learn.startPractice")}
+            </Button>
+          </section>
+
+          <div className="lesson-actions">
+            <Button
+              variant={learned ? "tinted" : "glass"}
+              icon={learned ? "check-circle" : "book"}
+              onClick={() => {
+                if (!learned) {
+                  markLessonLearned(lesson.id);
+                  push(t("toast.lessonDone"), "success");
+                }
+              }}
+              disabled={learned}
+            >
+              {learned ? t("learn.completed") : t("learn.markLearned")}
+            </Button>
+            <button type="button" className="text-button" onClick={() => onNavigate("/learn")}>
+              {t("learn.backToLearn")}
+            </button>
           </div>
-        </section>
-
-        <section className="lesson-practice">
-          <div className="lesson-practice-copy">
-            <p className="screen-eyebrow">{t("learn.practiceStarts", { tier: t(`tier.${lesson.tier}`) })}</p>
-            <h2>{t("learn.practice")}</h2>
-            <p>{t("learn.practiceHint")}</p>
-            <small>{t("learn.practiceNote")}</small>
-          </div>
-          <Button variant="primary" size="lg" icon="play" onClick={() => onPractice(lesson)}>
-            {t("learn.startPractice")}
-          </Button>
-        </section>
-
-        <div className="lesson-actions">
-          <Button
-            variant={learned ? "tinted" : "glass"}
-            icon={learned ? "check-circle" : "book"}
-            onClick={() => {
-              if (!learned) {
-                markLessonLearned(lesson.id);
-                push(t("toast.lessonDone"), "success");
-              }
-            }}
-            disabled={learned}
-          >
-            {learned ? t("learn.completed") : t("learn.markLearned")}
-          </Button>
-          <button type="button" className="text-button" onClick={() => onNavigate("/learn")}>
-            {t("learn.backToLearn")}
-          </button>
         </div>
 
         <nav className="lesson-nav">

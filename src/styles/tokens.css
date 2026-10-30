@@ -84,6 +84,9 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --maxw: 1180px;
+  /* One page frame for every content screen: header and body share this
+     width, so the title never shifts when you change tabs. */
+  --screen-w: 1080px;
   --ease-spring: cubic-bezier(0.22, 1.2, 0.36, 1);
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 }

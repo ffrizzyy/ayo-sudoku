@@ -6,7 +6,7 @@
 .screen-header {
   position: relative;
   z-index: 1;
-  width: min(100%, var(--screen-w, 880px));
+  width: min(100%, var(--screen-w, 1080px));
   margin: 0 auto;
   padding: clamp(18px, 4vw, 38px) clamp(16px, 4vw, 34px) 10px;
   display: flex;
@@ -561,29 +561,6 @@
 .daily-screen,
 .packs-screen,
 .learn-screen,
-.stats-screen {
-  --screen-w: 1080px;
-}
-
-.settings-screen {
-  --screen-w: 1000px;
-}
-
-.about-screen {
-  --screen-w: 980px;
-}
-
-.import-screen {
-  --screen-w: 940px;
-}
-
-.lesson-screen {
-  --screen-w: 760px;
-}
-
-.daily-screen,
-.packs-screen,
-.learn-screen,
 .stats-screen,
 .settings-screen,
 .about-screen,
@@ -601,7 +578,7 @@
 .import-main {
   position: relative;
   z-index: 1;
-  width: min(100%, var(--screen-w, 880px));
+  width: min(100%, var(--screen-w, 1080px));
   margin: 0 auto;
   padding: 10px clamp(16px, 4vw, 34px) 34px;
   display: flex;
@@ -1453,12 +1430,12 @@
 .lesson-top {
   position: relative;
   z-index: 1;
-  width: min(100%, 760px);
+  width: min(100%, var(--screen-w, 1080px));
   margin: 0 auto;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: calc(12px + var(--safe-top)) clamp(14px, 4vw, 32px) 4px;
+  padding: calc(12px + var(--safe-top)) clamp(16px, 4vw, 34px) 4px;
 }
 
 .lesson-progress-text {
@@ -1485,12 +1462,20 @@
 .lesson-main {
   position: relative;
   z-index: 1;
-  width: min(100%, 760px);
+  width: min(100%, var(--screen-w, 1080px));
   margin: 0 auto;
-  padding: 12px clamp(16px, 4vw, 32px) 36px;
+  padding: 12px clamp(16px, 4vw, 34px) 36px;
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+.lesson-body,
+.lesson-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
 }
 
 .lesson-hero {
@@ -2095,10 +2080,6 @@
   white-space: nowrap;
 }
 
-.settings-main {
-  width: min(100%, var(--screen-w, 780px));
-}
-
 .settings-card {
   padding: 18px;
   border-radius: 23px;
@@ -2234,7 +2215,7 @@
   gap: 8px;
   /* Same box and gutter as .about-main, so the app name sits directly over
      the cards instead of floating on the full viewport width. */
-  width: min(100%, var(--screen-w, 980px));
+  width: min(100%, var(--screen-w, 1080px));
   margin: 0 auto;
   padding: calc(40px + var(--safe-top)) clamp(16px, 4vw, 34px) 22px;
 }
@@ -2264,7 +2245,6 @@
 }
 
 .about-main {
-  width: min(100%, var(--screen-w, 700px));
   gap: 12px;
 }
 
@@ -2420,10 +2400,6 @@
 }
 
 /* ---------- Import ---------- */
-
-.import-main {
-  width: min(100%, var(--screen-w, 760px));
-}
 
 .import-side {
   display: flex;
@@ -3770,6 +3746,52 @@
   .import-side {
     grid-column: 2;
     grid-row: 1;
+  }
+
+  /* Lesson: steps and tip on the left, practice and actions on the right. */
+  .lesson-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 16px 18px;
+    align-items: start;
+  }
+
+  .lesson-hero {
+    grid-column: 1 / -1;
+  }
+
+  .lesson-hero > div {
+    min-width: 0;
+  }
+
+  .lesson-hero p:not(.screen-eyebrow) {
+    max-width: 64ch;
+  }
+
+  .lesson-body {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .lesson-aside {
+    grid-column: 2;
+    grid-row: 2;
+    gap: 14px;
+  }
+
+  .lesson-nav {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .lesson-practice {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .lesson-actions {
+    justify-content: flex-start;
   }
 }
 
