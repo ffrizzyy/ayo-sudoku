@@ -88,7 +88,6 @@ export function SettingsScreen({ onNavigate, onReplayOnboarding, installed, canI
         <div>
           <p className="screen-eyebrow">{t("nav.settings")}</p>
           <h1>{t("settings.title")}</h1>
-          <p>{t("settings.subtitle")}</p>
         </div>
         <span className="settings-version">{t("settings.version", { version: CREDITS.version })}</span>
       </header>

@@ -134,7 +134,6 @@ export function Daily({ onPlay, onResume, onNavigate }: DailyProps) {
         <div>
           <p className="screen-eyebrow">{t("nav.daily")}</p>
           <h1>{t("daily.title")}</h1>
-          <p>{t("daily.subtitle")}</p>
         </div>
         <button type="button" className="header-link" onClick={() => onNavigate("/stats")}>
           <Icon name="chart" size={18} />
@@ -285,7 +284,6 @@ export function Daily({ onPlay, onResume, onNavigate }: DailyProps) {
           <Icon name="book" size={19} />
           <span>
             <strong>{t("learn.title")}</strong>
-            <small>{t("learn.subtitle")}</small>
           </span>
           <Icon name="chevron-right" size={18} />
         </button>

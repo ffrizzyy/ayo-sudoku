@@ -316,18 +316,22 @@
   min-height: 40px;
 }
 
+.mode-segmented {
+  margin-bottom: 10px;
+}
+
 .mode-option {
   display: inline-flex;
   align-items: center;
   gap: 5px;
 }
 
-.mode-description {
-  margin: 10px 2px 13px;
-  min-height: 2.5em;
-  font-size: 0.76rem;
-  color: var(--ink-2);
-  line-height: 1.45;
+/* Puzzle type and board size sit side by side above the difficulty grid. */
+.play-setup {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .tier-picker {
@@ -496,30 +500,9 @@
   font-weight: 800;
 }
 
-.quick-copy small {
-  margin-top: 1px;
-  font-size: 0.64rem;
-  color: var(--ink-3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .quick-chevron {
   color: var(--ink-3);
   flex: none;
-}
-
-.home-suggestion {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 0 2px;
-  color: var(--ink-3);
-  font-size: 0.7rem;
-  font-weight: 650;
-  text-align: center;
 }
 
 .home-footer {
@@ -897,11 +880,6 @@
 
 .daily-learn-link strong {
   font-size: 0.84rem;
-}
-
-.daily-learn-link small {
-  font-size: 0.66rem;
-  color: var(--ink-3);
 }
 
 /* ---------- Packs ---------- */
@@ -3864,6 +3842,10 @@
   .mode-section {
     padding: 13px;
     border-radius: 22px;
+  }
+
+  .play-setup {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .daily-strip {

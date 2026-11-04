@@ -2,6 +2,23 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.1.0] — 2026-11-04
+
+Three Sudoku types and three board sizes, and a quieter interface: menus and headers no longer carry taglines.
+
+### Added
+
+- **X-Sudoku.** The two main diagonals must also hold 1–9. Diagonal cells are tinted so the extra rule is visible on the board.
+- **Windoku.** Four extra 3×3 windows (rows and columns 2–4 and 6–8) must each hold 1–9 as well. The windows are outlined on the board. Windoku is 9×9 only; the other sizes are disabled while it is selected.
+- A puzzle type picker (Classic / X-Sudoku / Windoku) and a board size picker (9×9 / 6×6 / 4×4) on Home. The game subline names the type, and the choice survives “Next puzzle”.
+- Share codes carry the variant in bit 3 of the header byte, so X-Sudoku and Windoku links reopen as the same type. Existing codes decode exactly as before.
+
+### Changed
+
+- **Less copy in menus.** Home loses the mode description, the adaptive suggestion line and the secondary line under every quick card. Daily, Packs, Learn, Stats, Settings and Import lose their header subtitles; functional help text stays.
+- The engine's solver state is now built from every unit (rows, columns, boxes, windows, diagonals) instead of a fixed row/column/box set. Generation, grading and hints use the same code path for all variants.
+- Hints label a Windoku window as “window N” instead of “the grid”.
+
 ## [1.0.7] — 2026-10-30
 
 Every screen now lives inside the same page frame, so the title and cards no longer jump left or right when you change tabs.

@@ -64,6 +64,10 @@ export function Board({
 }: BoardProps) {
   const { t } = useI18n();
   const geom = useMemo(() => getGeometry(spec), [spec]);
+  const diagonalCells = useMemo(
+    () => (spec.variant === "diagonal" ? new Set(geom.diagonals.flat()) : null),
+    [spec.variant, geom],
+  );
   const dragging = useRef(false);
   const longPressTimer = useRef<number | null>(null);
   const longPressFired = useRef(false);
@@ -169,7 +173,7 @@ export function Board({
 
   return (
     <div
-      className={`board ${dimmed ? "is-dimmed" : ""}`}
+      className={`board variant-${spec.variant} ${dimmed ? "is-dimmed" : ""}`}
       role="grid"
       aria-label={t("a11y.board", { size: spec.size })}
       aria-rowcount={spec.size}
@@ -223,6 +227,7 @@ export function Board({
                   hintUnit.has(cell) ? "is-hint-unit" : "",
                   completedCells?.has(cell) ? "is-complete" : "",
                   data.color ? "has-color" : "",
+                  diagonalCells?.has(cell) ? "is-diagonal" : "",
                   largeMarks ? "large-marks" : "",
                 ]
                   .filter(Boolean)
@@ -292,6 +297,24 @@ export function Board({
           })}
         </div>
       ))}
+      {spec.variant === "windoku" && geom.windows.length ? (
+        <span className="board-windows" aria-hidden="true">
+          {geom.windows.map((window, index) => (
+            <span
+              key={index}
+              className="board-window"
+              style={
+                {
+                  ["--w-box-x" as string]: Math.floor(geom.colOf[window[0]] / spec.boxCols),
+                  ["--w-cell-x" as string]: geom.colOf[window[0]] % spec.boxCols,
+                  ["--w-box-y" as string]: Math.floor(geom.rowOf[window[0]] / spec.boxRows),
+                  ["--w-cell-y" as string]: geom.rowOf[window[0]] % spec.boxRows,
+                } as React.CSSProperties
+              }
+            />
+          ))}
+        </span>
+      ) : null}
     </div>
   );
 }

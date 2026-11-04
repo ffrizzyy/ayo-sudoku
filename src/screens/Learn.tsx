@@ -22,7 +22,6 @@ export function Learn({ onNavigate }: LearnProps) {
         <div>
           <p className="screen-eyebrow">{t("nav.learn")}</p>
           <h1>{t("learn.title")}</h1>
-          <p>{t("learn.subtitle")}</p>
         </div>
         <div className="learn-progress">
           <ProgressRing value={learned.size / LESSONS.length} size={58} stroke={5}>

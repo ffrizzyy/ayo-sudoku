@@ -24,7 +24,6 @@ export function Packs({ onNavigate }: PacksProps) {
         <div>
           <p className="screen-eyebrow">{t("nav.packs")}</p>
           <h1>{t("packs.title")}</h1>
-          <p>{t("packs.subtitle")}</p>
         </div>
         <div className="packs-stars">
           <StarIcon size={20} />

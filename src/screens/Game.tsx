@@ -563,6 +563,7 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle, exitLabel }: Gam
         row: "game.unitRow",
         column: "game.unitColumn",
         box: "game.unitBox",
+        window: "game.unitWindow",
         grid: "game.unitGrid",
       } as const;
       return t(map[plan.unit.type], { index: plan.unit.index });
@@ -931,6 +932,15 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle, exitLabel }: Gam
   const displayTime = formatDuration(session.elapsedMs);
   const tierLabel = t(`tier.${session.puzzle.tier}`);
   const modeLabel = t(`mode.${session.mode}`);
+  const variant = session.puzzle.spec.variant;
+  const variantLabel = variant === "classic" ? "" : t(`variant.${variant}`);
+  const sizeLabel =
+    session.puzzle.spec.size < 9
+      ? `${session.puzzle.spec.size}×${session.puzzle.spec.size}`
+      : "";
+  const puzzleLabel = [variantLabel, sizeLabel, tierLabel, session.mode === "classic" ? "" : modeLabel]
+    .filter(Boolean)
+    .join(" · ");
   const lives = session.livesLeft ?? 3;
   const hintCount = hintsTotal;
 
@@ -1135,7 +1145,7 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle, exitLabel }: Gam
             <span>
               {selected.size > 1
                 ? t("game.multiSelect", { count: selected.size })
-                : `${tierLabel} · ${modeLabel}`}
+                : puzzleLabel}
             </span>
             <span className="game-subline-note">{t("game.parTime", { time: formatDuration(par) })}</span>
           </div>

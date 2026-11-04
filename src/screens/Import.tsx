@@ -99,7 +99,6 @@ export function Import({ initialCode, onPlay, onBack }: ImportProps) {
             <Icon name="arrow-left" size={17} /> {t("common.back")}
           </button>
           <h1>{t("import.title")}</h1>
-          <p>{t("import.subtitle")}</p>
         </div>
       </header>
 

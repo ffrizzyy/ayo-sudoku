@@ -8,9 +8,11 @@ import { Icon, StarIcon } from "../ui/Icon";
 import { Button, ProgressRing, Segmented } from "../ui/primitives";
 import { BubbleBackdrop } from "../ui/BubbleBackdrop";
 import { CREDITS } from "../config/credits";
-import type { Size, Tier } from "../engine/types";
+import type { Size, Tier, Variant } from "../engine/types";
 
 const TIERS: Tier[] = ["cozy", "easy", "medium", "hard", "expert", "master"];
+const SIZES: Size[] = [9, 6, 4];
+const VARIANTS: Variant[] = ["classic", "diagonal", "windoku"];
 const MODES: Array<{ value: "classic" | "daily" | "zen" | "challenge"; icon: "grid" | "calendar" | "heart" | "flame" }> = [
   { value: "classic", icon: "grid" },
   { value: "daily", icon: "calendar" },
@@ -21,7 +23,7 @@ const MODES: Array<{ value: "classic" | "daily" | "zen" | "challenge"; icon: "gr
 type HomeMode = (typeof MODES)[number]["value"];
 
 interface HomeProps {
-  onPlay: (mode: GameMode, tier: Tier, size?: Size) => void;
+  onPlay: (mode: GameMode, tier: Tier, size?: Size, variant?: Variant) => void;
   onDaily: () => void;
   onResume: (session: SavedGame) => void;
   onNavigate: (route: string) => void;
@@ -50,6 +52,8 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
   const data = useData();
   const [mode, setMode] = useState<HomeMode>("classic");
   const [tier, setTier] = useState<Tier>("medium");
+  const [variant, setVariant] = useState<Variant>("classic");
+  const [size, setSize] = useState<Size>(9);
 
   const saves = useMemo(() => readSaves(), []);
   const latest = useMemo(() => {
@@ -71,15 +75,8 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
       else onDaily();
       return;
     }
-    onPlay(mode, tier);
+    onPlay(mode, tier, size, variant);
   };
-
-  const modeDescription =
-    mode === "daily"
-      ? dailyDone
-        ? t("daily.solvedToday")
-        : t("mode.dailyDesc")
-      : t(`mode.${mode}Desc`);
 
   return (
     <div className="home-screen">
@@ -183,29 +180,59 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
             label={t("home.newGame")}
             className="mode-segmented"
           />
-          <p className="mode-description">{modeDescription}</p>
-
           {mode !== "daily" ? (
-            <div className="tier-picker" role="radiogroup" aria-label={t("home.chooseDifficulty")}>
-              {TIERS.map((option, index) => (
-                <button
-                  key={option}
-                  type="button"
-                  role="radio"
-                  aria-checked={tier === option}
-                  className={`tier-card ${tier === option ? "is-active" : ""}`}
-                  onClick={() => setTier(option)}
-                >
-                  <span className="tier-dots" aria-hidden="true">
-                    {Array.from({ length: 6 }, (_, dot) => (
-                      <span key={dot} className={dot <= index ? "is-on" : ""} />
-                    ))}
-                  </span>
-                  <span className="tier-name">{t(`tier.${option}`)}</span>
-                  {option === suggestion ? <span className="tier-suggest">{t("home.suggested")}</span> : null}
-                </button>
-              ))}
-            </div>
+            <>
+              <div className="play-setup">
+                <Segmented
+                  options={VARIANTS.map((option) => ({
+                    value: option,
+                    label: t(`variant.${option}`),
+                  }))}
+                  value={variant}
+                  onChange={(value) => {
+                    setVariant(value);
+                    if (value === "windoku") setSize(9);
+                  }}
+                  label={t("home.chooseVariant")}
+                  compact
+                  className="setup-segmented setup-variant"
+                />
+                <Segmented
+                  options={SIZES.map((option) => ({
+                    value: `${option}`,
+                    label: `${option}×${option}`,
+                    ariaLabel: t("home.boardSize", { size: `${option}×${option}` }),
+                    disabled: variant === "windoku" && option !== 9,
+                  }))}
+                  value={`${size}`}
+                  onChange={(value) => setSize(Number(value) as Size)}
+                  label={t("home.chooseSize")}
+                  compact
+                  className="setup-segmented setup-size"
+                />
+              </div>
+
+              <div className="tier-picker" role="radiogroup" aria-label={t("home.chooseDifficulty")}>
+                {TIERS.map((option, index) => (
+                  <button
+                    key={option}
+                    type="button"
+                    role="radio"
+                    aria-checked={tier === option}
+                    className={`tier-card ${tier === option ? "is-active" : ""}`}
+                    onClick={() => setTier(option)}
+                  >
+                    <span className="tier-dots" aria-hidden="true">
+                      {Array.from({ length: 6 }, (_, dot) => (
+                        <span key={dot} className={dot <= index ? "is-on" : ""} />
+                      ))}
+                    </span>
+                    <span className="tier-name">{t(`tier.${option}`)}</span>
+                    {option === suggestion ? <span className="tier-suggest">{t("home.suggested")}</span> : null}
+                  </button>
+                ))}
+              </div>
+            </>
           ) : (
             <div className="daily-strip">
               <div className="daily-strip-item">
@@ -255,7 +282,6 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
             </span>
             <span className="quick-copy">
               <strong>{t("home.dailyCard")}</strong>
-              <small>{data.currentStreak ? t("home.dailyStreak", { count: data.currentStreak }) : t("home.noStreak")}</small>
             </span>
             <Icon name="chevron-right" size={18} className="quick-chevron" />
           </button>
@@ -266,18 +292,16 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
             </span>
             <span className="quick-copy">
               <strong>{t("home.packsCard")}</strong>
-              <small>{t("home.starsEarned", { count: data.totalStars })}</small>
             </span>
             <Icon name="chevron-right" size={18} className="quick-chevron" />
           </button>
 
-          <button type="button" className="quick-card" onClick={() => onPlay("classic", "easy", 6)}>
+          <button type="button" className="quick-card" onClick={() => onPlay("classic", "easy", 6, "classic")}>
             <span className="quick-icon">
               <Icon name="grid" size={20} />
             </span>
             <span className="quick-copy">
               <strong>{t("home.miniTitle")}</strong>
-              <small>{t("home.miniNote")}</small>
             </span>
             <Icon name="chevron-right" size={18} className="quick-chevron" />
           </button>
@@ -288,16 +312,10 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
             </span>
             <span className="quick-copy">
               <strong>{t("import.title")}</strong>
-              <small>{t("import.subtitle")}</small>
             </span>
             <Icon name="chevron-right" size={18} className="quick-chevron" />
           </button>
         </section>
-
-        <p className="home-suggestion">
-          <Icon name="bulb" size={16} />
-          {t("home.adaptive", { tier: t(`tier.${suggestion}`) })}
-        </p>
       </main>
 
       <footer className="home-footer">

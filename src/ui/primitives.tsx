@@ -72,7 +72,7 @@ export function Segmented<T extends string>({
   compact,
   className = "",
 }: {
-  options: Array<{ value: T; label: ReactNode; ariaLabel?: string }>;
+  options: Array<{ value: T; label: ReactNode; ariaLabel?: string; disabled?: boolean }>;
   value: T;
   onChange: (value: T) => void;
   label: string;
@@ -95,7 +95,8 @@ export function Segmented<T extends string>({
           role="tab"
           aria-selected={option.value === value}
           aria-label={option.ariaLabel}
-          className={`segmented-item ${option.value === value ? "is-active" : ""}`}
+          disabled={option.disabled}
+          className={`segmented-item ${option.value === value ? "is-active" : ""} ${option.disabled ? "is-disabled" : ""}`}
           onClick={() => onChange(option.value)}
         >
           {option.label}

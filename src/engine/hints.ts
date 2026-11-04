@@ -11,7 +11,7 @@ import type { BoardSpec } from "./types";
 export type HintKind = "wrong" | "conflict" | "step" | "solution";
 
 export interface UnitDescriptor {
-  type: "row" | "column" | "box" | "grid";
+  type: "row" | "column" | "box" | "window" | "grid";
   index: number;
 }
 
@@ -41,6 +41,12 @@ function describeUnit(unitCells: readonly number[], geom: Geometry): UnitDescrip
   }
   const boxes = new Set(unitCells.map((cell) => geom.boxOf[cell]));
   if (boxes.size === 1) return { type: "box", index: [...boxes][0] + 1 };
+  const windowIndex = geom.windows.findIndex((window) => {
+    if (window.length !== unitCells.length) return false;
+    const members = new Set(window);
+    return unitCells.every((cell) => members.has(cell));
+  });
+  if (windowIndex >= 0) return { type: "window", index: windowIndex + 1 };
   return { type: "grid", index: 0 };
 }
 

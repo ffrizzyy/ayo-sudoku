@@ -9,7 +9,7 @@ import { dailyDate, dailySeed, dailyTier } from "./app/daily";
 import { LESSONS, type LessonDefinition } from "./app/lessons";
 import { PACKS, packPuzzleToPuzzle } from "./app/packs";
 import { makeSession, mostRecentSave, type GameMode, type SavedGame } from "./app/storage";
-import type { PuzzleDef, Size, Tier } from "./engine/types";
+import type { PuzzleDef, Size, Tier, Variant } from "./engine/types";
 import { Home } from "./screens/Home";
 import { Daily } from "./screens/Daily";
 import { Packs, PackDetail } from "./screens/Packs";
@@ -202,6 +202,7 @@ export function App() {
       mode: "classic" | "zen" | "challenge" | "learn";
       tier: Tier;
       size?: Size;
+      variant?: Variant;
       lessonId?: string;
       returnRoute: string;
     }) => {
@@ -211,6 +212,7 @@ export function App() {
         const puzzle = await generate({
           tier: options.tier,
           size: options.size ?? 9,
+          variant: options.variant ?? "classic",
         });
         if (id !== generationId.current) return;
         const session = makeSession(puzzle, options.mode, options.mode);
@@ -307,6 +309,7 @@ export function App() {
           mode: session.mode,
           tier: session.puzzle.tier,
           size: session.puzzle.spec.size,
+          variant: session.puzzle.spec.variant,
           returnRoute: routeForSession(session),
         });
       }
@@ -434,9 +437,9 @@ export function App() {
   } else {
     content = (
       <Home
-        onPlay={(mode, tier, size) => {
+        onPlay={(mode, tier, size, variant) => {
           if (mode === "classic" || mode === "zen" || mode === "challenge") {
-            void startGenerated({ mode, tier, size, returnRoute: "/" });
+            void startGenerated({ mode, tier, size, variant, returnRoute: "/" });
           }
         }}
         onDaily={() => void startDaily()}

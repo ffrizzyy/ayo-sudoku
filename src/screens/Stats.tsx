@@ -59,7 +59,6 @@ export function Stats() {
         <div>
           <p className="screen-eyebrow">{t("nav.stats")}</p>
           <h1>{t("stats.title")}</h1>
-          <p>{t("stats.subtitle")}</p>
         </div>
         <div className="stats-overview">
           <span>

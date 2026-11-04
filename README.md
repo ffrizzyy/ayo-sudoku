@@ -19,7 +19,7 @@ Ayo Sudoku! is a local-first Sudoku app that feels at home on a phone. There are
 
 | Mode | What it is |
 | --- | --- |
-| **Classic** | Endless puzzles across six difficulty tiers and three board sizes (4x4, 6x6, 9x9). |
+| **Classic** | Endless puzzles across six difficulty tiers, three board sizes (4x4, 6x6, 9x9) and three rule sets: Classic, X-Sudoku (both diagonals) and Windoku (four extra 3x3 windows, 9x9 only). |
 | **Daily** | One deterministic puzzle per UTC day, with its own streak and a playable archive of past days. |
 | **Zen** | No timer pressure, no mistake limit, and generous hints. |
 | **Challenge** | Fewer lives, no reveals, higher stakes. |
