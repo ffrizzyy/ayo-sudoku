@@ -44,6 +44,23 @@ describe("board geometry", () => {
     expect(geom.units).toHaveLength(29);
     expect(geom.peers[0]).toContain(80);
   });
+
+  it("builds the four 3x3 windows for windoku", () => {
+    const geom = getGeometry(makeSpec(9, "windoku"));
+    expect(geom.windows).toHaveLength(4);
+    expect(geom.units).toHaveLength(27 + 4);
+    expect(geom.windows).toEqual([
+      [10, 11, 12, 19, 20, 21, 28, 29, 30],
+      [14, 15, 16, 23, 24, 25, 32, 33, 34],
+      [46, 47, 48, 55, 56, 57, 64, 65, 66],
+      [50, 51, 52, 59, 60, 61, 68, 69, 70],
+    ]);
+    // 10 (r1c1) and 30 (r3c3) share no row, column or box, only a window.
+    expect(geom.peers[10]).toContain(30);
+    // Classic boards and mini boards have no windows.
+    expect(getGeometry(makeSpec(9)).windows).toHaveLength(0);
+    expect(makeSpec(6, "windoku").variant).toBe("classic");
+  });
 });
 
 describe("solver", () => {
@@ -145,6 +162,21 @@ describe("generator", () => {
     expect(solution).not.toBeNull();
     expect(formatGrid(solution!)).toBe(result.puzzle.solution);
   }, 20000);
+
+  it("generates a windoku puzzle whose solution fills every window", () => {
+    const spec = makeSpec(9, "windoku");
+    const geom = getGeometry(spec);
+    const result = generatePuzzle({ tier: "easy", spec, seed: "windoku", budgetMs: 10000, maxAttempts: 12 });
+    const values = parseGrid(result.puzzle.givens, geom);
+    expect(countSolutions(values, spec, 2)).toBe(1);
+    const solved = solve(values, spec);
+    expect(solved).not.toBeNull();
+    for (const window of geom.windows) {
+      const digits = window.map((cell) => solved![cell]).sort((a, b) => a - b);
+      expect(digits).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    }
+    expect(result.puzzle.spec.variant).toBe("windoku");
+  }, 30000);
 });
 
 describe("share codes", () => {
@@ -202,6 +234,25 @@ describe("share codes", () => {
     });
     expect(decodeShareCode(code).spec.size).toBe(4);
   });
+
+  it("keeps the windoku variant across a share code", () => {
+    const spec = makeSpec(9, "windoku");
+    const result = generatePuzzle({ tier: "easy", spec, seed: "windoku-code", budgetMs: 10000, maxAttempts: 12 });
+    const code = encodeShareCode(result.puzzle);
+    const decoded = decodeShareCode(code);
+    expect(decoded.spec.variant).toBe("windoku");
+    expect(decoded.spec.size).toBe(9);
+    expect(decoded.givens).toBe(result.puzzle.givens);
+    expect(puzzleFromShareCode(code).solution).toBe(result.puzzle.solution);
+  }, 30000);
+
+  it("keeps the diagonal variant across a share code", () => {
+    const spec = makeSpec(9, "diagonal");
+    const result = generatePuzzle({ tier: "easy", spec, seed: "diag-code", budgetMs: 10000, maxAttempts: 12 });
+    const decoded = decodeShareCode(encodeShareCode(result.puzzle));
+    expect(decoded.spec.variant).toBe("diagonal");
+    expect(decoded.givens).toBe(result.puzzle.givens);
+  }, 30000);
 });
 
 describe("hints", () => {

@@ -15,6 +15,7 @@ import {
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 const SIZE_CODE: Record<Size, number> = { 4: 0, 6: 1, 9: 2 };
 const CODE_SIZE: Record<number, Size> = { 0: 4, 1: 6, 2: 9 };
+const VARIANT_BITS: Record<Variant, number> = { classic: 0, diagonal: 0b100, windoku: 0b1000 };
 const MAX_CODE_LENGTH = 256;
 
 function base64urlEncode(bytes: Uint8Array): string {
@@ -67,8 +68,7 @@ export function encodeShareCode(puzzle: PuzzleDef): string {
   const givens = parseGrid(puzzle.givens, geom);
   const body: number[] = [];
   body.push(1);
-  const variantBits =
-    SIZE_CODE[size] | (puzzle.spec.variant === "diagonal" ? 0b100 : 0);
+  const variantBits = SIZE_CODE[size] | VARIANT_BITS[puzzle.spec.variant];
   body.push(variantBits);
   body.push(TIERS.indexOf(puzzle.tier));
 
@@ -106,7 +106,11 @@ export function decodeShareCode(code: string): DecodedCode {
   const variantBits = bytes[1];
   const size = CODE_SIZE[variantBits & 0b011];
   if (!size) throw new Error("code.variant");
-  const variant: Variant = variantBits & 0b100 ? "diagonal" : "classic";
+  const windoku = (variantBits & 0b1000) !== 0;
+  const diagonal = (variantBits & 0b100) !== 0;
+  // v1 only defines a single variant per puzzle, and Windoku is 9x9 only.
+  if (windoku && (diagonal || size !== 9)) throw new Error("code.variant");
+  const variant: Variant = windoku ? "windoku" : diagonal ? "diagonal" : "classic";
   const spec = makeSpec(size, variant);
 
   const tier = TIERS[bytes[2]];

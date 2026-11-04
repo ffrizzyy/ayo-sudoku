@@ -14,6 +14,8 @@ export interface Geometry {
   rows: number[][];
   cols: number[][];
   boxes: number[][];
+  /** Extra 3x3 windows for Windoku (empty for other variants). */
+  windows: number[][];
   diagonals: number[][];
   /** indexes into diagonals for each cell */
   cellDiags: number[][];
@@ -30,6 +32,7 @@ function build(spec: BoardSpec): Geometry {
   const rows: number[][] = [];
   const cols: number[][] = [];
   const boxes: number[][] = [];
+  const windows: number[][] = [];
   const diagonals: number[][] = [];
   const rowOf: number[] = [];
   const colOf: number[] = [];
@@ -66,6 +69,22 @@ function build(spec: BoardSpec): Geometry {
     boxOf[i] = Math.floor(r / boxRows) * boxColsCount + Math.floor(c / boxCols);
   }
 
+  if (variant === "windoku" && size === 9) {
+    // The four extra 3x3 windows of a Windoku board: rows 2-4 and 6-8,
+    // columns 2-4 and 6-8 (1-based), leaving the classic boxes intact.
+    for (const startRow of [1, 5]) {
+      for (const startCol of [1, 5]) {
+        const window: number[] = [];
+        for (let r = 0; r < 3; r++) {
+          for (let c = 0; c < 3; c++) {
+            window.push((startRow + r) * size + (startCol + c));
+          }
+        }
+        windows.push(window);
+      }
+    }
+  }
+
   if (variant === "diagonal") {
     const main: number[] = [];
     const anti: number[] = [];
@@ -76,7 +95,7 @@ function build(spec: BoardSpec): Geometry {
     diagonals.push(main, anti);
   }
 
-  const units = [...rows, ...cols, ...boxes, ...diagonals];
+  const units = [...rows, ...cols, ...boxes, ...windows, ...diagonals];
   const cellUnits: number[][] = Array.from({ length: cellCount }, () => []);
   units.forEach((unit, unitIndex) => {
     for (const cell of unit) cellUnits[cell].push(unitIndex);
@@ -108,6 +127,7 @@ function build(spec: BoardSpec): Geometry {
     rows,
     cols,
     boxes,
+    windows,
     diagonals,
     cellDiags,
     rowOf,

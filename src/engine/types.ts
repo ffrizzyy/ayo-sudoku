@@ -3,7 +3,7 @@
  */
 
 export type Size = 4 | 6 | 9;
-export type Variant = "classic" | "diagonal";
+export type Variant = "classic" | "diagonal" | "windoku";
 export type Tier = "cozy" | "easy" | "medium" | "hard" | "expert" | "master";
 export type Difficulty = Tier;
 
@@ -39,5 +39,9 @@ export const BOX_DIMS: Record<Size, { boxRows: number; boxCols: number }> = {
 };
 
 export function makeSpec(size: Size, variant: Variant = "classic"): BoardSpec {
-  return { size, variant, ...BOX_DIMS[size] };
+  // Windoku is defined by its four extra 3x3 windows, which only exist on a
+  // 9x9 grid. Smaller boards fall back to classic instead of producing a
+  // board with no extra units.
+  const resolved: Variant = variant === "windoku" && size !== 9 ? "classic" : variant;
+  return { size, variant: resolved, ...BOX_DIMS[size] };
 }

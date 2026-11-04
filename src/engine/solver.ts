@@ -4,35 +4,20 @@ import { shuffle, type Rng } from "./prng";
 import type { BoardSpec } from "./types";
 
 interface MaskState {
-  rows: Int32Array;
-  cols: Int32Array;
-  boxes: Int32Array;
-  diags: Int32Array;
+  units: Int32Array;
 }
 
 function makeState(geom: Geometry, values: readonly number[]): MaskState | null {
   const state: MaskState = {
-    rows: new Int32Array(geom.size),
-    cols: new Int32Array(geom.size),
-    boxes: new Int32Array(geom.boxes.length),
-    diags: new Int32Array(geom.diagonals.length),
+    units: new Int32Array(geom.units.length),
   };
   for (let cell = 0; cell < geom.cellCount; cell++) {
     const value = values[cell];
     if (!value) continue;
     const bit = 1 << (value - 1);
-    const r = geom.rowOf[cell];
-    const c = geom.colOf[cell];
-    const b = geom.boxOf[cell];
-    if (state.rows[r] & bit || state.cols[c] & bit || state.boxes[b] & bit) {
-      return null;
-    }
-    state.rows[r] |= bit;
-    state.cols[c] |= bit;
-    state.boxes[b] |= bit;
-    for (const d of geom.cellDiags[cell]) {
-      if (state.diags[d] & bit) return null;
-      state.diags[d] |= bit;
+    for (const unitIndex of geom.cellUnits[cell]) {
+      if (state.units[unitIndex] & bit) return null;
+      state.units[unitIndex] |= bit;
     }
   }
   return state;
@@ -40,10 +25,7 @@ function makeState(geom: Geometry, values: readonly number[]): MaskState | null 
 
 function cellMask(cell: number, geom: Geometry, state: MaskState): number {
   let mask = allMask(geom.size);
-  mask &= ~state.rows[geom.rowOf[cell]];
-  mask &= ~state.cols[geom.colOf[cell]];
-  mask &= ~state.boxes[geom.boxOf[cell]];
-  for (const d of geom.cellDiags[cell]) mask &= ~state.diags[d];
+  for (const unitIndex of geom.cellUnits[cell]) mask &= ~state.units[unitIndex];
   return mask;
 }
 
@@ -56,10 +38,7 @@ function place(
 ): void {
   const bit = 1 << (digit - 1);
   values[cell] = digit;
-  state.rows[geom.rowOf[cell]] |= bit;
-  state.cols[geom.colOf[cell]] |= bit;
-  state.boxes[geom.boxOf[cell]] |= bit;
-  for (const d of geom.cellDiags[cell]) state.diags[d] |= bit;
+  for (const unitIndex of geom.cellUnits[cell]) state.units[unitIndex] |= bit;
 }
 
 function unplace(
@@ -71,10 +50,7 @@ function unplace(
 ): void {
   const bit = 1 << (digit - 1);
   values[cell] = 0;
-  state.rows[geom.rowOf[cell]] &= ~bit;
-  state.cols[geom.colOf[cell]] &= ~bit;
-  state.boxes[geom.boxOf[cell]] &= ~bit;
-  for (const d of geom.cellDiags[cell]) state.diags[d] &= ~bit;
+  for (const unitIndex of geom.cellUnits[cell]) state.units[unitIndex] &= ~bit;
 }
 
 function countDfs(
@@ -179,9 +155,9 @@ export function randomSolution(spec: BoardSpec, rng: Rng): number[] | null {
   const state = makeState(geom, values);
   if (!state) return null;
 
-  // Prefill diagonal boxes for variety. Skip for the diagonal variant because
-  // independent boxes could repeat digits along a diagonal.
-  if (spec.variant !== "diagonal") {
+  // Prefill diagonal boxes for variety. Classic only: extra units (diagonals,
+  // Windoku windows) overlap those boxes, so a blind prefill could conflict.
+  if (spec.variant === "classic") {
     const boxRowsCount = geom.size / geom.boxRows;
     const boxColsCount = geom.size / geom.boxCols;
     const diagonalBoxIndexes: number[] = [];
