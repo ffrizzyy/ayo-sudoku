@@ -19,8 +19,9 @@ Three types need no extra clue data because their regions are derivable from the
 - The solver's mask state is a single `Int32Array` indexed by unit instead of four separate arrays. `makeState`, `cellMask`, `place` and `unplace` walk `geom.cellUnits`, so diagonals, windows and any future region type work without touching the solver.
 - The classic "prefill the diagonal boxes" variety step only runs for `classic`. Windows and diagonals overlap those boxes, so a blind prefill could create a contradiction.
 - Share codes keep version 1. The header byte still stores the size in bits 0–1 and the diagonal flag in bit 2; Windoku spends bit 3. Old codes decode as before, and a Windoku bit on a non-9×9 code is rejected.
-- Home gets a compact puzzle-type segmented control and a board-size segmented control above the difficulty grid. Windoku disables 6×6 and 4×4 and snaps the size back to 9×9. Daily ignores both because it is always a classic 9×9.
+- Home opens a setup sheet from a single Play card: the sheet holds the mode, puzzle-type and board-size segmented controls plus the difficulty grid. Windoku disables 6×6 and 4×4 and snaps the size back to 9×9. Daily ignores the type and size pickers because it is always a classic 9×9.
 - Board visuals are additive: diagonal cells get a tinted background and inset ring; Windoku windows are absolutely positioned outlines over the existing box grid. `--box-w`, `--cell-w`, `--box-pitch` and `--cell-pitch` are computed in container units from the existing gap tokens, so the outlines track the grid at every width without DOM measurement.
+- Home uses the shared `--screen-w` frame and header: a brand header, a Play card that opens the setup sheet, an optional Continue card and four shortcuts. There are no setup controls on the landing view, and the suggested difficulty is preselected rather than labelled.
 - Hints can describe a window (`window N`) instead of falling back to "the grid".
 
 ## Consequences

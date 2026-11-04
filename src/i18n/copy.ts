@@ -73,6 +73,7 @@ export const en = {
     progress: "{filled} of {total} cells",
     noContinue: "No game in progress. Ready for a fresh puzzle?",
     newGame: "New game",
+    play: "Play",
     chooseDifficulty: "Choose a difficulty",
     chooseVariant: "Puzzle type",
     chooseSize: "Board size",
@@ -83,7 +84,6 @@ export const en = {
     packsCard: "Puzzle packs",
     install: "Install app",
     miniTitle: "Mini 6×6",
-    suggested: "Suggested for you",
   },
   game: {
     undo: "Undo",
@@ -591,6 +591,7 @@ export const id: Dictionary = {
     progress: "{filled} dari {total} kotak terisi",
     noContinue: "Belum ada permainan aktif. Yuk, mulai yang baru!",
     newGame: "Permainan baru",
+    play: "Mainkan",
     chooseDifficulty: "Pilih tingkat kesulitan",
     chooseVariant: "Jenis teka-teki",
     chooseSize: "Ukuran papan",
@@ -601,7 +602,6 @@ export const id: Dictionary = {
     packsCard: "Paket Teka-teki",
     install: "Pasang Aplikasi",
     miniTitle: "Mini 6×6",
-    suggested: "Pilihan untukmu",
   },
   game: {
     undo: "Urungkan",

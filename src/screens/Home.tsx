@@ -5,7 +5,7 @@ import { useData, dateKey } from "../app/data";
 import { useSettings } from "../app/settings";
 import { useI18n } from "../i18n";
 import { Icon, StarIcon } from "../ui/Icon";
-import { Button, ProgressRing, Segmented } from "../ui/primitives";
+import { Button, ProgressRing, Segmented, Sheet } from "../ui/primitives";
 import { BubbleBackdrop } from "../ui/BubbleBackdrop";
 import { CREDITS } from "../config/credits";
 import type { Size, Tier, Variant } from "../engine/types";
@@ -51,9 +51,10 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
   const { update } = useSettings();
   const data = useData();
   const [mode, setMode] = useState<HomeMode>("classic");
-  const [tier, setTier] = useState<Tier>("medium");
+  const [tier, setTier] = useState<Tier>(() => suggestedTier(data.results));
   const [variant, setVariant] = useState<Variant>("classic");
   const [size, setSize] = useState<Size>(9);
+  const [setupOpen, setSetupOpen] = useState(false);
 
   const saves = useMemo(() => readSaves(), []);
   const latest = useMemo(() => {
@@ -67,9 +68,26 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
   const today = dateKey();
   const dailySave = saves[dailySaveKey(today)] ?? null;
   const dailyDone = Boolean(data.daily[today]);
-  const suggestion = suggestedTier(data.results);
+
+  const startLabel =
+    mode === "daily"
+      ? dailySave && dailySave.status !== "won" && dailySave.status !== "lost"
+        ? t("daily.continueToday")
+        : t("daily.playToday")
+      : t("home.start");
+
+  /** One line that names exactly what the Play button will start. */
+  const setupSummary = [
+    t(`mode.${mode}`),
+    mode !== "daily" && variant !== "classic" ? t(`variant.${variant}`) : "",
+    mode !== "daily" && size !== 9 ? `${size}×${size}` : "",
+    mode !== "daily" ? t(`tier.${tier}`) : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const handlePrimary = () => {
+    setSetupOpen(false);
     if (mode === "daily") {
       if (dailySave && dailySave.status !== "won" && dailySave.status !== "lost") onResume(dailySave);
       else onDaily();
@@ -81,7 +99,7 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
   return (
     <div className="home-screen">
       <BubbleBackdrop />
-      <header className="home-header">
+      <header className="screen-header home-header">
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
             <span className="brand-grid">
@@ -92,7 +110,6 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
           </span>
           <div className="brand-copy">
             <h1>{CREDITS.appName}</h1>
-            <p>{t("home.tagline")}</p>
           </div>
         </div>
         <div className="home-header-actions">
@@ -128,43 +145,110 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
       </header>
 
       <main className="home-main">
-        {latest ? (
-          <button type="button" className="continue-card" onClick={() => onResume(latest)}>
-            <ProgressRing value={progressOf(latest)} size={52} stroke={5}>
-              <span className="continue-progress">{Math.round(progressOf(latest) * 100)}%</span>
-            </ProgressRing>
-            <span className="continue-copy">
-              <span className="continue-eyebrow">{t("home.continueTitle")}</span>
-              <span className="continue-title">
-                {t("home.continueSubtitle", {
-                  mode: t(`mode.${latest.mode}`),
-                  tier: t(`tier.${latest.puzzle.tier}`),
-                })}
-              </span>
-              <span className="continue-meta">
-                {t("home.progress", {
-                  filled: latest.cells.filter((cell) => cell.value > 0).length,
-                  total: latest.cells.length,
-                })}
-              </span>
+        <section className="home-hero" aria-label={t("home.newGame")}>
+          <button type="button" className="play-card" onClick={() => setSetupOpen(true)}>
+            <span className="play-card-icon">
+              <Icon name="play" size={26} />
             </span>
-            <span className="continue-arrow">
-              <Icon name="chevron-right" size={20} />
+            <span className="play-card-copy">
+              <strong>{t("home.play")}</strong>
+              <span>{setupSummary}</span>
+            </span>
+            <span className="play-card-arrow">
+              <Icon name="chevron-right" size={22} />
             </span>
           </button>
-        ) : (
-          <div className="continue-empty">
-            <span className="continue-empty-icon">
-              <Icon name="play" size={22} />
-            </span>
-            <span>
-              <strong>{t("home.newGame")}</strong>
-              <small>{t("home.noContinue")}</small>
-            </span>
-          </div>
-        )}
 
-        <section className="mode-section" aria-label={t("home.newGame")}>
+          {latest ? (
+            <button type="button" className="continue-card" onClick={() => onResume(latest)}>
+              <ProgressRing value={progressOf(latest)} size={52} stroke={5}>
+                <span className="continue-progress">{Math.round(progressOf(latest) * 100)}%</span>
+              </ProgressRing>
+              <span className="continue-copy">
+                <span className="continue-eyebrow">{t("home.continueTitle")}</span>
+                <span className="continue-title">
+                  {t("home.continueSubtitle", {
+                    mode: t(`mode.${latest.mode}`),
+                    tier: t(`tier.${latest.puzzle.tier}`),
+                  })}
+                </span>
+                <span className="continue-meta">
+                  {t("home.progress", {
+                    filled: latest.cells.filter((cell) => cell.value > 0).length,
+                    total: latest.cells.length,
+                  })}
+                </span>
+              </span>
+              <span className="continue-arrow">
+                <Icon name="chevron-right" size={20} />
+              </span>
+            </button>
+          ) : null}
+        </section>
+
+        <section className="home-links" aria-label={t("nav.home")}>
+          <button type="button" className="quick-card quick-daily" onClick={() => (dailyDone ? onNavigate("/daily") : onDaily())}>
+            <span className="quick-icon">
+              <Icon name="calendar" size={22} />
+            </span>
+            <span className="quick-copy">
+              <strong>{t("home.dailyCard")}</strong>
+            </span>
+            <Icon name="chevron-right" size={18} className="quick-chevron" />
+          </button>
+
+          <button type="button" className="quick-card quick-packs" onClick={() => onNavigate("/packs")}>
+            <span className="quick-icon">
+              <Icon name="grid" size={22} />
+            </span>
+            <span className="quick-copy">
+              <strong>{t("home.packsCard")}</strong>
+            </span>
+            <Icon name="chevron-right" size={18} className="quick-chevron" />
+          </button>
+
+          <button type="button" className="quick-card" onClick={() => onPlay("classic", "easy", 6, "classic")}>
+            <span className="quick-icon">
+              <Icon name="grid" size={20} />
+            </span>
+            <span className="quick-copy">
+              <strong>{t("home.miniTitle")}</strong>
+            </span>
+            <Icon name="chevron-right" size={18} className="quick-chevron" />
+          </button>
+
+          <button type="button" className="quick-card" onClick={() => onNavigate("/import")}>
+            <span className="quick-icon">
+              <Icon name="import" size={20} />
+            </span>
+            <span className="quick-copy">
+              <strong>{t("import.title")}</strong>
+            </span>
+            <Icon name="chevron-right" size={18} className="quick-chevron" />
+          </button>
+        </section>
+      </main>
+
+      <footer className="home-footer">
+        <span>{t("common.madeBy", { name: CREDITS.author })}</span>
+        <a href={CREDITS.authorUrl} target="_blank" rel="noreferrer noopener">
+          {CREDITS.authorUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+        </a>
+      </footer>
+
+      <Sheet
+        open={setupOpen}
+        onClose={() => setSetupOpen(false)}
+        title={t("home.newGame")}
+        subtitle={setupSummary}
+        size="md"
+        footer={
+          <Button variant="primary" size="lg" full icon="play" onClick={handlePrimary} className="home-start">
+            {startLabel}
+          </Button>
+        }
+      >
+        <div className="mode-section">
           <Segmented
             options={MODES.map((item) => ({
               value: item.value,
@@ -228,7 +312,6 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
                       ))}
                     </span>
                     <span className="tier-name">{t(`tier.${option}`)}</span>
-                    {option === suggestion ? <span className="tier-suggest">{t("home.suggested")}</span> : null}
                   </button>
                 ))}
               </div>
@@ -258,72 +341,8 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
               </div>
             </div>
           )}
-
-          <Button
-            variant="primary"
-            size="lg"
-            full
-            icon="play"
-            onClick={handlePrimary}
-            className="home-start"
-          >
-            {mode === "daily"
-              ? dailySave && dailySave.status !== "won"
-                ? t("daily.continueToday")
-                : t("daily.playToday")
-              : t("home.start")}
-          </Button>
-        </section>
-
-        <section className="quick-grid">
-          <button type="button" className="quick-card quick-daily" onClick={() => (dailyDone ? onNavigate("/daily") : onDaily())}>
-            <span className="quick-icon">
-              <Icon name="calendar" size={22} />
-            </span>
-            <span className="quick-copy">
-              <strong>{t("home.dailyCard")}</strong>
-            </span>
-            <Icon name="chevron-right" size={18} className="quick-chevron" />
-          </button>
-
-          <button type="button" className="quick-card quick-packs" onClick={() => onNavigate("/packs")}>
-            <span className="quick-icon">
-              <Icon name="grid" size={22} />
-            </span>
-            <span className="quick-copy">
-              <strong>{t("home.packsCard")}</strong>
-            </span>
-            <Icon name="chevron-right" size={18} className="quick-chevron" />
-          </button>
-
-          <button type="button" className="quick-card" onClick={() => onPlay("classic", "easy", 6, "classic")}>
-            <span className="quick-icon">
-              <Icon name="grid" size={20} />
-            </span>
-            <span className="quick-copy">
-              <strong>{t("home.miniTitle")}</strong>
-            </span>
-            <Icon name="chevron-right" size={18} className="quick-chevron" />
-          </button>
-
-          <button type="button" className="quick-card" onClick={() => onNavigate("/import")}>
-            <span className="quick-icon">
-              <Icon name="import" size={20} />
-            </span>
-            <span className="quick-copy">
-              <strong>{t("import.title")}</strong>
-            </span>
-            <Icon name="chevron-right" size={18} className="quick-chevron" />
-          </button>
-        </section>
-      </main>
-
-      <footer className="home-footer">
-        <span>{t("common.madeBy", { name: CREDITS.author })}</span>
-        <a href={CREDITS.authorUrl} target="_blank" rel="noreferrer noopener">
-          {CREDITS.authorUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-        </a>
-      </footer>
+        </div>
+      </Sheet>
     </div>
   );
 }

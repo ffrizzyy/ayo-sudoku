@@ -2,6 +2,21 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.1.1] — 2026-11-04
+
+Home becomes a landing page: one Play button, and the setup sheet only appears when you press it.
+
+### Changed
+
+- **Home only shows the Play button and shortcuts.** Mode, puzzle type, board size and difficulty moved into a bottom sheet that opens from the Play card. The card names what will start (`Classic · Medium`), so the choice is visible without opening the sheet.
+- **Home joins the shared page frame.** It now uses `--screen-w` (1080px) and the same header/content edges as Daily, Packs, Learn, Stats, Settings, About and Import; the old 760px column is gone. At 900px and up the Play card sits on the left with Continue under it, and the four shortcuts fill the right column; the block is centred vertically. On phones everything stays in one centred column with the footer above the tab bar.
+- **The suggested tier is preselected** instead of being marked with a “Suggested for you” chip on the difficulty grid, which overlapped the tier names on narrow screens.
+- Home drops the brand tagline and the empty “no game in progress” card; Continue appears only when a save exists.
+
+### Removed
+
+- `.mode-description`, `.home-suggestion`, `.quick-copy small`, `.continue-empty`, `.tier-suggest`, `.quick-grid`, and the `home.suggested` copy key (EN and ID).
+
 ## [1.1.0] — 2026-11-04
 
 Three Sudoku types and three board sizes, and a quieter interface: menus and headers no longer carry taglines.
