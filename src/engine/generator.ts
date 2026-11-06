@@ -1,10 +1,11 @@
 import { getGeometry } from "./board";
 import { cyrb128, sfc32, shuffle, type Rng } from "./prng";
-import { countSolutions, randomSolution } from "./solver";
+import { countSolutions, findSolutions, randomSolution } from "./solver";
 import { gradePuzzle, tierDistance, type GradeResult } from "./techniques";
 import {
   TIERS,
   type BoardSpec,
+  type Cage,
   type PuzzleDef,
   type Tier,
 } from "./types";
@@ -154,12 +155,219 @@ export interface GenerateResult {
 }
 
 /**
+ * Cage size range per difficulty. Five-cell cages are excluded on purpose: the
+ * sum of a large cage barely constrains its cells, and the uniqueness search
+ * then explodes into tens of seconds on a phone. Cages up to four cells keep
+ * generation in the low hundreds of milliseconds.
+ */
+const KILLER_CAGE_SIZES: Record<Tier, { min: number; max: number }> = {
+  cozy: { min: 2, max: 3 },
+  easy: { min: 2, max: 3 },
+  medium: { min: 2, max: 4 },
+  hard: { min: 2, max: 4 },
+  expert: { min: 2, max: 4 },
+  master: { min: 3, max: 4 },
+};
+
+/**
+ * Grows orthogonally connected cages over a finished solution. Every cell ends
+ * up in exactly one cage, so the sums describe the whole grid.
+ */
+export function buildKillerCages(
+  solution: readonly number[],
+  spec: BoardSpec,
+  tier: Tier,
+  rng: Rng,
+): Cage[] {
+  const geom = getGeometry(spec);
+  const size = spec.size;
+  const { min, max } = KILLER_CAGE_SIZES[tier];
+  const assigned = new Uint8Array(geom.cellCount);
+  const order = shuffle(
+    Array.from({ length: geom.cellCount }, (_, index) => index),
+    rng,
+  );
+  const cages: Cage[] = [];
+
+  for (const start of order) {
+    if (assigned[start]) continue;
+    const target = min + Math.floor(rng() * (max - min + 1));
+    const cells = [start];
+    assigned[start] = 1;
+
+    while (cells.length < target) {
+      const frontier: number[] = [];
+      for (const cell of cells) {
+        const row = geom.rowOf[cell];
+        const col = geom.colOf[cell];
+        if (row > 0) frontier.push(cell - size);
+        if (row < size - 1) frontier.push(cell + size);
+        if (col > 0) frontier.push(cell - 1);
+        if (col < size - 1) frontier.push(cell + 1);
+      }
+      // Killer cages never repeat a digit, so a neighbour that would duplicate
+      // one already in the cage cannot join it.
+      const usedDigits = new Set(cells.map((cell) => solution[cell]));
+      const open = frontier.filter((cell) => !assigned[cell] && !usedDigits.has(solution[cell]));
+      if (!open.length) break;
+      const next = open[Math.floor(rng() * open.length)];
+      assigned[next] = 1;
+      cells.push(next);
+    }
+
+    // Keep cages compact by sorting cells; the renderer and share codes rely
+    // on a stable order.
+    cells.sort((a, b) => a - b);
+    const sum = cells.reduce((total, cell) => total + solution[cell], 0);
+    cages.push({ cells, sum });
+  }
+
+  cages.sort((a, b) => a.cells[0] - b.cells[0]);
+  return cages;
+}
+
+/**
+ * Extra clues handed out on the gentler tiers. Cages alone usually leave the
+ * grid nearly determined, so a few givens are what separates cozy from master.
+ */
+const KILLER_EXTRA_CLUES: Record<Tier, number> = {
+  cozy: 12,
+  easy: 9,
+  medium: 7,
+  hard: 5,
+  expert: 3,
+  master: 2,
+};
+
+/**
+ * Killer generation starts from a full solution and derives cage sums, so the
+ * solution is always valid. Cages rarely pin the grid down on their own, so the
+ * two-solution comparison is repeated: compare the first two answers, take the
+ * value of one cell they disagree on from the real solution, and try again.
+ * Each given removes every answer that differs there, so this always reaches a
+ * unique puzzle in a handful of steps.
+ */
+function generateKiller(options: GenerateOptions): GenerateResult {
+  const { tier, spec } = options;
+  const seed = options.seed ?? `ayo-killer-${tier}-${Date.now().toString(36)}`;
+  const started = Date.now();
+  const geom = getGeometry(spec);
+  const maxAttempts = options.maxAttempts ?? 24;
+  const extraClues = KILLER_EXTRA_CLUES[tier];
+
+  let best: PuzzleDef | null = null;
+  let attempt = 0;
+
+  for (; attempt < maxAttempts; attempt++) {
+    if (options.budgetMs && best && Date.now() - started > options.budgetMs) break;
+    const attemptSeed = `${seed}:${attempt}`;
+    const rng = sfc32(attemptSeed);
+    const solution = randomSolution(spec, rng);
+    if (!solution) continue;
+    const cages = buildKillerCages(solution, spec, tier, rng);
+
+    const givens = new Array<number>(geom.cellCount).fill(0);
+    const order = shuffle(
+      Array.from({ length: geom.cellCount }, (_, index) => index),
+      rng,
+    );
+    for (const cell of order.slice(0, extraClues)) givens[cell] = solution[cell];
+
+    // Peel ambiguity until the cages and the givens allow exactly one answer.
+    let solved = false;
+    for (let guard = 0; guard <= geom.cellCount; guard++) {
+      const answers = findSolutions(givens, spec, 2, cages);
+      if (answers.length === 0) break; // Cages contradict the solution: retry.
+      if (answers.length === 1) {
+        solved = true;
+        break;
+      }
+      const [first, second] = answers;
+      const differ: number[] = [];
+      for (let cell = 0; cell < geom.cellCount; cell++) {
+        if (first[cell] !== second[cell]) differ.push(cell);
+      }
+      if (!differ.length) break;
+      const pick = differ[Math.floor(rng() * differ.length)];
+      givens[pick] = solution[pick];
+    }
+    if (!solved) continue;
+
+    const idSeed = (cyrb128(attemptSeed)[0] >>> 0).toString(36);
+    best = {
+      id: `gen:killer:${idSeed}`,
+      spec,
+      givens: givens.map((value) => (value ? String(value) : "0")).join(""),
+      solution: solution.map((value) => String(value)).join(""),
+      tier,
+      // Cage count is the only stable hardness signal here: the technique
+      // grader in techniques.ts does not know about cages.
+      gradeScore: cages.reduce((total, cage) => total + cage.cells.length, 0) / cages.length,
+      techniques: {},
+      cages,
+      seed,
+      source: "generated",
+    };
+    break;
+  }
+
+  if (!best) {
+    // Last resort: start from the fully revealed solution and take clues away
+    // while the puzzle stays unique. Every check runs with plenty of givens, so
+    // it is quick, and the result is guaranteed to have exactly one answer.
+    const rng = sfc32(`${seed}:fallback`);
+    const solution = randomSolution(spec, rng) ?? new Array<number>(geom.cellCount).fill(0);
+    if (!solution.some(Boolean)) {
+      // randomSolution is not expected to fail; this keeps the contract anyway.
+      for (let cell = 0; cell < geom.cellCount; cell++) {
+        const row = Math.floor(cell / 9);
+        const col = cell % 9;
+        solution[cell] = (3 * (row % 3) + Math.floor(row / 3) + col) % 9 + 1;
+      }
+    }
+    const cages = buildKillerCages(solution, spec, "easy", rng);
+    const givens = [...solution];
+    const order = shuffle(
+      Array.from({ length: geom.cellCount }, (_, index) => index),
+      rng,
+    );
+    for (const cell of order) {
+      const keep = givens[cell];
+      givens[cell] = 0;
+      if (countSolutions(givens, spec, 2, cages) !== 1) givens[cell] = keep;
+    }
+    best = {
+      id: `gen:killer:${(cyrb128(`${seed}:fallback`)[0] >>> 0).toString(36)}`,
+      spec,
+      givens: givens.map((value) => (value ? String(value) : "0")).join(""),
+      solution: solution.map((value) => String(value)).join(""),
+      tier,
+      gradeScore: cages.reduce((total, cage) => total + cage.cells.length, 0) / cages.length,
+      techniques: {},
+      cages,
+      seed,
+      source: "generated",
+    };
+  }
+
+  return {
+    puzzle: best,
+    attempts: attempt + 1,
+    elapsedMs: Date.now() - started,
+    exactTierMatch: true,
+  };
+}
+
+/**
  * Generates a uniquely solvable, logic-solvable puzzle. Attempts are made until
  * the computed difficulty matches the request, the attempt budget runs out, or
  * the time budget expires. The closest attempt is returned as a fallback.
  */
 export function generatePuzzle(options: GenerateOptions): GenerateResult {
   const { tier, spec } = options;
+  // Killer is generated from cages rather than from carved clues, so it has
+  // its own pipeline.
+  if (spec.variant === "killer") return generateKiller(options);
   const requestedIndex = TIERS.indexOf(tier);
   const seed = options.seed ?? `ayo-${tier}-${Date.now().toString(36)}`;
   const started = Date.now();

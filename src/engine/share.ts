@@ -6,6 +6,7 @@ import {
   TIERS,
   makeSpec,
   type BoardSpec,
+  type Cage,
   type PuzzleDef,
   type Size,
   type Tier,
@@ -15,8 +16,14 @@ import {
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 const SIZE_CODE: Record<Size, number> = { 4: 0, 6: 1, 9: 2 };
 const CODE_SIZE: Record<number, Size> = { 0: 4, 1: 6, 2: 9 };
-const VARIANT_BITS: Record<Variant, number> = { classic: 0, diagonal: 0b100, windoku: 0b1000 };
-const MAX_CODE_LENGTH = 256;
+const VARIANT_BITS: Record<Variant, number> = {
+  classic: 0,
+  diagonal: 0b100,
+  windoku: 0b1000,
+  killer: 0b10000,
+};
+/** Killer codes carry one byte per cell, so they are longer than v1 codes. */
+const MAX_CODE_LENGTH = 512;
 
 function base64urlEncode(bytes: Uint8Array): string {
   let output = "";
@@ -62,12 +69,27 @@ export function crc16(bytes: Uint8Array): number {
   return crc;
 }
 
+/**
+ * Cage payload: the count, then one sum per cage, then one cage id per cell.
+ * Cages are ordered by their first cell so the same puzzle always encodes to the
+ * same string.
+ */
+function encodeCages(cages: readonly Cage[], cellCount: number): number[] {
+  const ordered = [...cages].sort((a, b) => Math.min(...a.cells) - Math.min(...b.cells));
+  const ids = new Array<number>(cellCount).fill(0);
+  ordered.forEach((cage, index) => {
+    for (const cell of cage.cells) ids[cell] = index;
+  });
+  return [ordered.length, ...ordered.map((cage) => cage.sum), ...ids];
+}
+
 export function encodeShareCode(puzzle: PuzzleDef): string {
   const size = puzzle.spec.size;
   const geom = getGeometry(puzzle.spec);
   const givens = parseGrid(puzzle.givens, geom);
+  const cages = puzzle.spec.variant === "killer" ? puzzle.cages : undefined;
   const body: number[] = [];
-  body.push(1);
+  body.push(cages?.length ? 2 : 1);
   const variantBits = SIZE_CODE[size] | VARIANT_BITS[puzzle.spec.variant];
   body.push(variantBits);
   body.push(TIERS.indexOf(puzzle.tier));
@@ -77,6 +99,8 @@ export function encodeShareCode(puzzle: PuzzleDef): string {
     const low = givens[i + 1] ?? 0;
     body.push(((high & 0x0f) << 4) | (low & 0x0f));
   }
+
+  if (cages?.length) body.push(...encodeCages(cages, geom.cellCount));
 
   const withoutCrc = Uint8Array.from(body);
   const crc = crc16(withoutCrc);
@@ -92,6 +116,7 @@ export interface DecodedCode {
   tier: Tier;
   givens: string;
   values: number[];
+  cages?: Cage[];
 }
 
 export function decodeShareCode(code: string): DecodedCode {
@@ -101,16 +126,26 @@ export function decodeShareCode(code: string): DecodedCode {
   const bytes = base64urlDecode(trimmed);
   if (bytes.length < 6) throw new Error("code.tooShort");
   const version = bytes[0];
-  if (version !== 1) throw new Error("code.version");
+  if (version !== 1 && version !== 2) throw new Error("code.version");
 
   const variantBits = bytes[1];
   const size = CODE_SIZE[variantBits & 0b011];
   if (!size) throw new Error("code.variant");
   const windoku = (variantBits & 0b1000) !== 0;
   const diagonal = (variantBits & 0b100) !== 0;
-  // v1 only defines a single variant per puzzle, and Windoku is 9x9 only.
-  if (windoku && (diagonal || size !== 9)) throw new Error("code.variant");
-  const variant: Variant = windoku ? "windoku" : diagonal ? "diagonal" : "classic";
+  const killer = (variantBits & 0b10000) !== 0;
+  // Each variant redefines the grid in a way the others cannot share, and
+  // Windoku and Killer are 9x9 only.
+  if ([windoku, diagonal, killer].filter(Boolean).length > 1) throw new Error("code.variant");
+  if ((windoku || killer) && size !== 9) throw new Error("code.variant");
+  if (killer && version === 1) throw new Error("code.variant");
+  const variant: Variant = killer
+    ? "killer"
+    : windoku
+      ? "windoku"
+      : diagonal
+        ? "diagonal"
+        : "classic";
   const spec = makeSpec(size, variant);
 
   const tier = TIERS[bytes[2]];
@@ -118,9 +153,6 @@ export function decodeShareCode(code: string): DecodedCode {
 
   const geom = getGeometry(spec);
   const packed = Math.ceil(geom.cellCount / 2);
-  const expected = 3 + packed + 2;
-  if (bytes.length !== expected) throw new Error("code.length");
-
   const withoutCrc = bytes.subarray(0, bytes.length - 2);
   const stored = (bytes[bytes.length - 2] << 8) | bytes[bytes.length - 1];
   if (crc16(withoutCrc) !== stored) throw new Error("code.crc");
@@ -135,8 +167,35 @@ export function decodeShareCode(code: string): DecodedCode {
     if (value > size) throw new Error("code.digit");
   }
 
+  let cages: Cage[] | undefined;
+  if (killer) {
+    const start = 3 + packed;
+    if (bytes.length < start + 1 + 2) throw new Error("code.length");
+    const count = bytes[start];
+    if (!count) throw new Error("code.cages");
+    const expected = start + 1 + count + geom.cellCount + 2;
+    if (bytes.length !== expected) throw new Error("code.length");
+    const sums: number[] = [];
+    for (let index = 0; index < count; index++) {
+      const sum = bytes[start + 1 + index];
+      if (!sum || sum > 45) throw new Error("code.cages");
+      sums.push(sum);
+    }
+    const grouped: number[][] = Array.from({ length: count }, () => []);
+    for (let cell = 0; cell < geom.cellCount; cell++) {
+      const id = bytes[start + 1 + count + cell];
+      if (id >= count) throw new Error("code.cages");
+      grouped[id].push(cell);
+    }
+    if (grouped.some((cells) => !cells.length)) throw new Error("code.cages");
+    cages = grouped.map((cells, index) => ({ cells, sum: sums[index] }));
+  } else {
+    const expected = 3 + packed + 2;
+    if (bytes.length !== expected) throw new Error("code.length");
+  }
+
   const givens = values.map((value) => (value ? String(value) : "0")).join("");
-  return { spec, tier, givens, values };
+  return cages ? { spec, tier, givens, values, cages } : { spec, tier, givens, values };
 }
 
 export function puzzleFromValues(
@@ -144,12 +203,15 @@ export function puzzleFromValues(
   spec: BoardSpec,
   tier?: Tier,
   source: PuzzleDef["source"] = "imported",
+  cages?: readonly Cage[],
 ): PuzzleDef {
   const geom = getGeometry(spec);
   if (values.length !== geom.cellCount) throw new Error("puzzle.size");
-  const solutions = countSolutions(values, spec, 2);
+  const cageList = cages?.length ? cages : undefined;
+  if (!!cageList !== (spec.variant === "killer")) throw new Error("puzzle.variant");
+  const solutions = countSolutions(values, spec, 2, cageList);
   if (solutions !== 1) throw new Error(solutions === 0 ? "puzzle.invalid" : "puzzle.multiple");
-  const solution = solve(values, spec);
+  const solution = solve(values, spec, cageList);
   if (!solution) throw new Error("puzzle.invalid");
   const grade = gradePuzzle(values, spec);
   const resolvedTier = tier ?? grade.hardestTier;
@@ -162,17 +224,24 @@ export function puzzleFromValues(
     givens,
     solution: solutionString,
     tier: resolvedTier,
-    gradeScore: grade.score,
-    techniques: Object.fromEntries(
-      Object.entries(grade.techniques).filter(([, count]) => (count ?? 0) > 0),
-    ) as Record<string, number>,
+    // The technique grader does not know about cages, so Killer reports the
+    // average cage size instead; it only feeds the par-time estimate.
+    gradeScore: cageList
+      ? cageList.reduce((total, cage) => total + cage.cells.length, 0) / cageList.length
+      : grade.score,
+    techniques: cageList
+      ? {}
+      : (Object.fromEntries(
+          Object.entries(grade.techniques).filter(([, count]) => (count ?? 0) > 0),
+        ) as Record<string, number>),
+    ...(cageList ? { cages: cageList.map((cage) => ({ cells: [...cage.cells], sum: cage.sum })) } : {}),
     source,
   };
 }
 
 export function puzzleFromShareCode(code: string): PuzzleDef {
   const decoded = decodeShareCode(code);
-  return puzzleFromValues(decoded.values, decoded.spec, decoded.tier, "imported");
+  return puzzleFromValues(decoded.values, decoded.spec, decoded.tier, "imported", decoded.cages);
 }
 
 export type ImportResult =

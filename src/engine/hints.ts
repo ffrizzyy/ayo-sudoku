@@ -1,4 +1,5 @@
 import { findConflicts, getGeometry, type Geometry } from "./board";
+import { buildCandidates } from "./solver";
 import {
   applyStep,
   findStep,
@@ -6,7 +7,7 @@ import {
   type Placement,
   type TechniqueId,
 } from "./techniques";
-import type { BoardSpec } from "./types";
+import type { BoardSpec, Cage } from "./types";
 
 export type HintKind = "wrong" | "conflict" | "step" | "solution";
 
@@ -61,11 +62,17 @@ function wrongEntries(values: readonly number[], solution: readonly number[]): n
 /**
  * Plans a three step hint. The caller decides how much to reveal:
  * nudge shows the unit, pointer shows the cells, reveal shows the placement.
+ *
+ * Killer passes its cages: the technique solver only knows rows, columns,
+ * boxes, diagonals and windows, so a hint there comes from cage-aware
+ * candidates (a naked single) and otherwise reveals the next cell of the
+ * solution.
  */
 export function planHint(
   values: readonly number[],
   solution: readonly number[],
   spec: BoardSpec,
+  cages?: readonly Cage[],
 ): HintPlan {
   const geom = getGeometry(spec);
   const wrong = wrongEntries(values, solution);
@@ -77,6 +84,50 @@ export function planHint(
       cells: wrong.slice(0, 3),
       unitCells: [],
       wrongCells: wrong,
+    };
+  }
+
+  if (cages?.length) {
+    const candidates = buildCandidates(values, geom, cages);
+    let single = -1;
+    for (let cell = 0; cell < geom.cellCount; cell++) {
+      if (values[cell]) continue;
+      const mask = candidates[cell];
+      if (mask && !(mask & (mask - 1))) {
+        single = cell;
+        break;
+      }
+    }
+    if (single >= 0) {
+      const digit = 32 - Math.clz32(candidates[single]);
+      return {
+        kind: "step",
+        technique: "nakedSingle",
+        cells: [single],
+        unitCells: geom.rows[geom.rowOf[single]],
+        digit,
+        placement: { cell: single, digit },
+        wrongCells: [],
+      };
+    }
+    const cell = values.findIndex((value) => value === 0);
+    if (cell >= 0) {
+      return {
+        kind: "solution",
+        technique: null,
+        cells: [cell],
+        unitCells: geom.rows[geom.rowOf[cell]],
+        digit: solution[cell],
+        placement: { cell, digit: solution[cell] },
+        wrongCells: [],
+      };
+    }
+    return {
+      kind: "step",
+      technique: null,
+      cells: [],
+      unitCells: [],
+      wrongCells: [],
     };
   }
 

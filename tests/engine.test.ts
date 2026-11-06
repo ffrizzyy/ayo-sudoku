@@ -177,6 +177,79 @@ describe("generator", () => {
     }
     expect(result.puzzle.spec.variant).toBe("windoku");
   }, 30000);
+
+  it("generates a killer puzzle that the cages solve uniquely", () => {
+    const spec = makeSpec(9, "killer");
+    const geom = getGeometry(spec);
+    const result = generatePuzzle({ tier: "medium", spec, seed: "killer-medium" });
+    const cages = result.puzzle.cages ?? [];
+    expect(cages.length).toBeGreaterThan(10);
+
+    // Cages cover every cell exactly once and repeat no digit.
+    const seen = new Set<number>();
+    for (const cage of cages) {
+      expect(cage.cells.length).toBeGreaterThan(0);
+      for (const cell of cage.cells) {
+        expect(seen.has(cell)).toBe(false);
+        seen.add(cell);
+      }
+      const digits = cage.cells.map((cell) => result.puzzle.solution[cell]);
+      expect(new Set(digits).size).toBe(digits.length);
+      expect(digits.reduce((sum, digit) => sum + Number(digit), 0)).toBe(cage.sum);
+    }
+    expect(seen.size).toBe(geom.cellCount);
+
+    const values = parseGrid(result.puzzle.givens, geom);
+    expect(countSolutions(values, spec, 2, cages)).toBe(1);
+    const solved = solve(values, spec, cages);
+    expect(formatGrid(solved!)).toBe(result.puzzle.solution);
+  }, 60000);
+
+  it("keeps killer cages in the share code", () => {
+    const spec = makeSpec(9, "killer");
+    const result = generatePuzzle({ tier: "easy", spec, seed: "killer-share" });
+    const code = encodeShareCode(result.puzzle);
+    const decoded = decodeShareCode(code);
+    expect(decoded.spec.variant).toBe("killer");
+    expect(decoded.cages?.length).toBe(result.puzzle.cages?.length);
+    const puzzle = puzzleFromShareCode(code);
+    expect(puzzle.solution).toBe(result.puzzle.solution);
+    expect(puzzle.cages?.length).toBe(result.puzzle.cages?.length);
+    // A killer code without its cages must not be accepted as a classic puzzle.
+    expect(() =>
+      puzzleFromShareCode(
+        encodeShareCode({
+          ...result.puzzle,
+          spec: makeSpec(9),
+          cages: undefined,
+        }),
+      ),
+    ).toThrow();
+  }, 60000);
+
+  it("treats cages as real constraints", () => {
+    const spec = makeSpec(9, "killer");
+    const geom = getGeometry(spec);
+    const values = parseGrid(PUZZLE, geom);
+    // PUZZLE's own solution gives a consistent cage; a wrong sum must fail.
+    const cage = { cells: [0, 1, 9], sum: Number(SOLUTION[0]) + Number(SOLUTION[1]) + Number(SOLUTION[9]) };
+    expect(countSolutions(values, spec, 2, [cage])).toBe(1);
+    expect(countSolutions(values, spec, 2, [{ ...cage, sum: cage.sum + 1 }])).toBe(0);
+    // Repeating a digit inside one cage breaks the killer rule.
+    expect(
+      countSolutions(values, spec, 2, [{ cells: [0, 1], sum: Number(SOLUTION[0]) * 2 }]),
+    ).toBe(0);
+  });
+
+  it("hints from the solution when cages make techniques unavailable", () => {
+    const spec = makeSpec(9, "killer");
+    const result = generatePuzzle({ tier: "medium", spec, seed: "killer-hint" });
+    const values = parseGrid(result.puzzle.givens, getGeometry(spec));
+    const solution = result.puzzle.solution.split("").map(Number);
+    const plan = planHint(values, solution, spec, result.puzzle.cages);
+    expect(plan.placement).toBeDefined();
+    expect(solution[plan.placement!.cell]).toBe(plan.placement!.digit);
+  }, 60000);
 });
 
 describe("share codes", () => {
