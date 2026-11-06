@@ -2,6 +2,27 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.2.0] — 2026-11-07
+
+Killer Sudoku arrives: cages with sums, a cage-aware solver and generation that starts from a solution.
+
+### Added
+
+- **Killer Sudoku.** The board is split into cages, each with a printed sum that its digits must reach without repeating. Killer is 9×9 only; 6×6 and 4×4 are disabled while it is selected.
+- **Cage-aware engine.** The solver tracks each cage's remaining sum and used digits, narrows cells with the combinations that can still fit, and rejects cages whose cells cannot cover the remaining digits. `findSolutions` exposes the first N answers so the generator can peel ambiguity.
+- **Killer generation.** Cages grow from a complete solution, then the generator compares the first two solutions and adds a given where they differ until the puzzle is unique. Cages stay at 2–4 cells so a phone generates a puzzle in well under a second.
+- **Killer share codes.** Version 2 codes carry the cages (count, sums, one cage id per cell); version 1 codes keep decoding exactly as before. The share card and its downloadable image now show cage sums and walls, and name the puzzle type.
+- Killer hints use cage-aware candidates for a naked single and otherwise reveal the next solution cell, because the technique engine does not reason about cages.
+
+### Changed
+
+- The puzzle type picker now has four entries (Classic, X-Sudoku, Windoku, Killer) and sits above the board size instead of beside it, so the row still fits a phone.
+- `--box-w` was one gap pair too narrow, which shrank every derived length by about 4%. Windoku window outlines and Killer walls now sit exactly on the cell grid.
+
+### Fixed
+
+- A Killer cage never repeats a digit, so it can always reach its sum; generation rejects a neighbour whose solution digit is already in the cage.
+
 ## [1.1.1] — 2026-11-04
 
 Home becomes a landing page: one Play button, and the setup sheet only appears when you press it.

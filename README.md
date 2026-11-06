@@ -19,7 +19,7 @@ Ayo Sudoku! is a local-first Sudoku app that feels at home on a phone. There are
 
 | Mode | What it is |
 | --- | --- |
-| **Classic** | Endless puzzles across six difficulty tiers, three board sizes (4x4, 6x6, 9x9) and three rule sets: Classic, X-Sudoku (both diagonals) and Windoku (four extra 3x3 windows, 9x9 only). |
+| **Classic** | Endless puzzles across six difficulty tiers, three board sizes (4x4, 6x6, 9x9) and four rule sets: Classic, X-Sudoku (both diagonals), Windoku (four extra 3x3 windows, 9x9 only) and Killer (cage sums, 9x9 only). |
 | **Daily** | One deterministic puzzle per UTC day, with its own streak and a playable archive of past days. |
 | **Zen** | No timer pressure, no mistake limit, and generous hints. |
 | **Challenge** | Fewer lives, no reveals, higher stakes. |
@@ -103,11 +103,11 @@ See [docs/architecture.md](docs/architecture.md) for the data flow and layer rul
 
 ## How puzzles work
 
-- **Seeded generation.** A puzzle is a pure function of its seed. The generator fills a complete grid with a seeded PRNG, carves clues symmetrically, checks uniqueness with a bitmask solver, then grades the result with human-style techniques.
+- **Seeded generation.** A puzzle is a pure function of its seed. The generator fills a complete grid with a seeded PRNG, carves clues symmetrically, checks uniqueness with a bitmask solver, then grades the result with human-style techniques. Killer puzzles grow cages from the solution instead, then add givens until the cage sums leave exactly one answer.
 - **Daily determinism.** The seed is `ayo-daily-YYYY-MM-DD` in UTC, so every device gets the same puzzle. The tier follows the weekday: cozy, easy, medium, medium, hard, expert, medium.
 - **Daily archive.** Because a daily is reproducible from its date, the Daily screen can offer a calendar of past days. Saves live under `daily:YYYY-MM-DD`, so an unfinished day can be resumed later; solved days keep their record and can be replayed. The archive starts at `DAILY_EPOCH` (2026-10-26), the first release, and does not invent earlier dates.
 - **Stars.** One star for finishing. Two stars when you make at most two mistakes and use no reveal hints. Three stars when you also finish under the tier's par time.
-- **Share codes.** `src/engine/share.ts` encodes the size, variant, givens and solution with a CRC check, producing a compact `AYO1-…` code. The importer also accepts 16, 36 or 81 character grids.
+- **Share codes.** `src/engine/share.ts` encodes the size, variant, givens and (for Killer) cages with a CRC check, producing a compact `AYO1-…` code. The importer also accepts 16, 36 or 81 character grids.
 - **Packs.** `src/data/packs.json` is generated and graded by the engine, then shipped as static data. See [docs/puzzle-pack-format.md](docs/puzzle-pack-format.md).
 
 ## Data and privacy
