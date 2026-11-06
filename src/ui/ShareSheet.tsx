@@ -116,19 +116,11 @@ async function drawCard(puzzle: PuzzleDef, tierLabel: string, timeLabel: string,
   for (let index = 0; index < geom.cellCount; index++) {
     const row = geom.rowOf[index];
     const col = geom.colOf[index];
-    const value = Number(givens[index] ?? 0);
     const x = boardX + col * cell;
     const y = boardY + row * cell;
     ctx.fillStyle = dark ? "#1C1C1E" : "#FFFFFF";
     roundRect(ctx, x + 2, y + 2, cell - 4, cell - 4, Math.max(4, 10 - size));
     ctx.fill();
-    if (value) {
-      ctx.fillStyle = ink;
-      ctx.font = `700 ${Math.round(cell * 0.52)}px ui-rounded, 'Nunito', system-ui, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(String(value), x + cell / 2, y + cell / 2 + 3);
-    }
   }
 
   // Cell lines, with heavier lines around each box.
@@ -148,6 +140,60 @@ async function drawCard(puzzle: PuzzleDef, tierLabel: string, timeLabel: string,
       ctx.lineTo(boardX + boardSize, y);
       ctx.stroke();
     }
+  }
+
+  // Killer: cage walls in the gutters and one sum per cage.
+  const cages = puzzle.spec.variant === "killer" ? puzzle.cages : undefined;
+  if (cages?.length) {
+    const owner = new Int16Array(geom.cellCount).fill(-1);
+    const sums = new Map<number, number>();
+    cages.forEach((cage, index) => {
+      for (const cellIndex of cage.cells) owner[cellIndex] = index;
+      sums.set(Math.min(...cage.cells), cage.sum);
+    });
+    ctx.strokeStyle = dark ? "#6A6A80" : "#8A8AA3";
+    ctx.lineWidth = 2.5;
+    for (let index = 0; index < geom.cellCount; index++) {
+      const row = geom.rowOf[index];
+      const col = geom.colOf[index];
+      if (col < size - 1 && owner[index + 1] !== owner[index]) {
+        const x = boardX + (col + 1) * cell;
+        const y = boardY + row * cell;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y + cell);
+        ctx.stroke();
+      }
+      if (row < size - 1 && owner[index + size] !== owner[index]) {
+        const x = boardX + col * cell;
+        const y = boardY + (row + 1) * cell;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + cell, y);
+        ctx.stroke();
+      }
+    }
+    ctx.fillStyle = muted;
+    ctx.font = `800 ${Math.round(cell * 0.2)}px ui-rounded, 'Nunito', system-ui, sans-serif`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    for (const [cellIndex, sum] of sums) {
+      const row = geom.rowOf[cellIndex];
+      const col = geom.colOf[cellIndex];
+      ctx.fillText(String(sum), boardX + col * cell + cell * 0.08, boardY + row * cell + cell * 0.26);
+    }
+  }
+
+  ctx.fillStyle = ink;
+  for (let index = 0; index < geom.cellCount; index++) {
+    const value = Number(givens[index] ?? 0);
+    if (!value) continue;
+    const x = boardX + geom.colOf[index] * cell;
+    const y = boardY + geom.rowOf[index] * cell;
+    ctx.font = `700 ${Math.round(cell * 0.52)}px ui-rounded, 'Nunito', system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(String(value), x + cell / 2, y + cell / 2 + 3);
   }
 
   ctx.textAlign = "left";
@@ -173,21 +219,43 @@ function downloadBlob(blob: Blob, name: string): void {
 
 function MiniBoard({ puzzle }: { puzzle: PuzzleDef }) {
   const givens = puzzle.givens.replace(/\./g, "0");
+  const size = puzzle.spec.size;
+  const cells = size * size;
+  const cages = puzzle.spec.variant === "killer" ? puzzle.cages : undefined;
+  const cageInfo = useMemo(() => {
+    if (!cages?.length) return null;
+    const owner = new Int16Array(cells).fill(-1);
+    const sums = new Map<number, number>();
+    cages.forEach((cage, index) => {
+      for (const cell of cage.cells) owner[cell] = index;
+      sums.set(Math.min(...cage.cells), cage.sum);
+    });
+    return { owner, sums };
+  }, [cages, cells]);
   return (
     <div
       className="share-mini"
       aria-hidden="true"
-      style={{ ["--mini-size" as string]: puzzle.spec.size }}
+      style={{ ["--mini-size" as string]: size }}
     >
-      {Array.from({ length: puzzle.spec.size * puzzle.spec.size }, (_, index) => {
+      {Array.from({ length: cells }, (_, index) => {
         const value = Number(givens[index] ?? 0);
+        const owner = cageInfo ? cageInfo.owner[index] : -1;
+        const col = index % size;
+        const row = Math.floor(index / size);
+        const cageRight = Boolean(cageInfo) && col < size - 1 && cageInfo!.owner[index + 1] !== owner;
+        const cageDown = Boolean(cageInfo) && row < size - 1 && cageInfo!.owner[index + size] !== owner;
+        const sum = cageInfo?.sums.get(index);
         return (
           <span
             key={index}
             className={`share-mini-cell ${value ? "has-value" : ""} ${
-              Math.floor(index / puzzle.spec.size) % puzzle.spec.boxRows === 0 && index >= puzzle.spec.size ? "box-top" : ""
-            } ${index % puzzle.spec.size % puzzle.spec.boxCols === 0 && index % puzzle.spec.size !== 0 ? "box-left" : ""}`}
+              row % puzzle.spec.boxRows === 0 && index >= size ? "box-top" : ""
+            } ${col % puzzle.spec.boxCols === 0 && col !== 0 ? "box-left" : ""} ${
+              sum === undefined ? "" : "has-sum"
+            } ${cageRight ? "cage-right" : ""} ${cageDown ? "cage-down" : ""}`}
           >
+            {sum === undefined ? null : <span className="share-mini-sum">{sum}</span>}
             {value || ""}
           </span>
         );
@@ -219,6 +287,11 @@ export function ShareSheet({
     return `${window.location.origin}${window.location.pathname}#/import/${code}`;
   }, [code]);
   const dark = document.documentElement.dataset.theme === "dark";
+  const label = useMemo(() => {
+    const variant =
+      puzzle.spec.variant === "classic" ? "" : t(`variant.${puzzle.spec.variant}` as const);
+    return [variant, tierLabel].filter(Boolean).join(" · ");
+  }, [puzzle.spec.variant, t, tierLabel]);
 
   const copy = useCallback(
     async (value: string, message: string) => {
@@ -236,7 +309,7 @@ export function ShareSheet({
   const shareImage = useCallback(async () => {
     setBusy(true);
     try {
-      const blob = await drawCard(puzzle, tierLabel, timeLabel, dark);
+      const blob = await drawCard(puzzle, label, timeLabel, dark);
       if (!blob) throw new Error("no blob");
       const file = new File([blob], "ayo-sudoku.png", { type: "image/png" });
       markShared();
@@ -258,7 +331,7 @@ export function ShareSheet({
     } finally {
       setBusy(false);
     }
-  }, [dark, markShared, puzzle, push, t, tierLabel, timeLabel]);
+  }, [dark, label, markShared, puzzle, push, t, timeLabel]);
 
   return (
     <Sheet
@@ -271,7 +344,7 @@ export function ShareSheet({
       <div className="share-preview-card">
         <div className="share-preview-head">
           <span className="share-logo">{CREDITS.appName}</span>
-          <span className="share-tier">{tierLabel}</span>
+          <span className="share-tier">{label}</span>
         </div>
         <MiniBoard puzzle={puzzle} />
         <div className="share-preview-foot">

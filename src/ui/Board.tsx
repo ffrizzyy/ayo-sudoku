@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { getGeometry, type BoardSpec } from "../engine";
+import { getGeometry, type BoardSpec, type Cage } from "../engine";
 import type { CellSnapshot } from "../app/storage";
 import { useI18n } from "../i18n";
 import { maskToDigits } from "../engine/bitset";
@@ -36,6 +36,8 @@ interface BoardProps {
   largeMarks?: boolean;
   completedCells?: Set<number>;
   dimmed?: boolean;
+  /** Killer only: the cages drawn over the grid. */
+  cages?: readonly Cage[];
   highlightSame: boolean;
   highlightPeers: boolean;
   highlightCandidates: boolean;
@@ -55,6 +57,7 @@ export function Board({
   largeMarks,
   completedCells,
   dimmed,
+  cages,
   highlightSame,
   highlightPeers,
   highlightCandidates,
@@ -68,6 +71,69 @@ export function Board({
     () => (spec.variant === "diagonal" ? new Set(geom.diagonals.flat()) : null),
     [spec.variant, geom],
   );
+  // Killer: which cage owns each cell, the sum shown in its first cell, and the
+  // wall segments between cages. Walls are drawn in the gaps and centred there,
+  // so a cage outline reads as one continuous line.
+  const cageInfo = useMemo(() => {
+    if (!cages?.length) return null;
+    const owner = new Int16Array(geom.cellCount).fill(-1);
+    const sums = new Map<number, number>();
+    cages.forEach((cage, index) => {
+      for (const cell of cage.cells) owner[cell] = index;
+      sums.set(Math.min(...cage.cells), cage.sum);
+    });
+
+    const cellLeft = (col: number) =>
+      `calc(var(--board-box-gap) + ${Math.floor(col / spec.boxCols)} * var(--box-pitch) + ${
+        col % spec.boxCols
+      } * var(--cell-pitch))`;
+    const cellTop = (row: number) =>
+      `calc(var(--board-box-gap) + ${Math.floor(row / spec.boxRows)} * var(--box-pitch) + ${
+        row % spec.boxRows
+      } * var(--cell-pitch))`;
+    const gapH = (col: number) =>
+      `var(${col % spec.boxCols === spec.boxCols - 1 ? "--board-box-gap" : "--board-cell-gap"})`;
+    const gapV = (row: number) =>
+      `var(${row % spec.boxRows === spec.boxRows - 1 ? "--board-box-gap" : "--board-cell-gap"})`;
+    /** The gap before a column/row (after the previous one). */
+    const gapHBefore = (col: number) => gapH(col > 0 ? col - 1 : 0);
+    const gapVBefore = (row: number) => gapV(row > 0 ? row - 1 : 0);
+
+    const walls: React.CSSProperties[] = [];
+    const edge = (gap: string, hasNeighbour: boolean) => (hasNeighbour ? `${gap} / 2` : "0px");
+    for (let cell = 0; cell < geom.cellCount; cell++) {
+      const row = geom.rowOf[cell];
+      const col = geom.colOf[cell];
+      const rightCell = col < spec.size - 1 ? cell + 1 : -1;
+      if (rightCell >= 0 && owner[rightCell] !== owner[cell]) {
+        // Vertical wall centred in the gap to the right. It reaches half a gap
+        // past the cell on both ends so it meets the horizontal walls exactly,
+        // but stops at the board edge.
+        walls.push({
+          left: `calc(${cellLeft(col)} + var(--cell-w) + ${gapH(col)} / 2 - 1px)`,
+          top: `calc(${cellTop(row)} - ${edge(gapVBefore(row), row > 0)})`,
+          width: "2px",
+          height: `calc(var(--cell-w) + ${edge(gapVBefore(row), row > 0)} + ${edge(
+            gapV(row),
+            row < spec.size - 1,
+          )})`,
+        });
+      }
+      const downCell = row < spec.size - 1 ? cell + spec.size : -1;
+      if (downCell >= 0 && owner[downCell] !== owner[cell]) {
+        walls.push({
+          top: `calc(${cellTop(row)} + var(--cell-w) + ${gapV(row)} / 2 - 1px)`,
+          left: `calc(${cellLeft(col)} - ${edge(gapHBefore(col), col > 0)})`,
+          height: "2px",
+          width: `calc(var(--cell-w) + ${edge(gapHBefore(col), col > 0)} + ${edge(
+            gapH(col),
+            col < spec.size - 1,
+          )})`,
+        });
+      }
+    }
+    return { owner, sums, walls };
+  }, [cages, geom, spec]);
   const dragging = useRef(false);
   const longPressTimer = useRef<number | null>(null);
   const longPressFired = useRef(false);
@@ -200,14 +266,16 @@ export function Board({
             const isConflict = wrong.has(cell) || hintWrong.has(cell);
             const cornerDigits = maskToDigits(data.corner);
             const centerDigits = maskToDigits(data.center);
+            const cageSum = cageInfo?.sums.get(cell);
+            const cageLabel = cageSum === undefined ? "" : `, ${t("a11y.cageSum", { sum: cageSum })}`;
             return (
               <button
                 type="button"
                 key={cell}
                 role="gridcell"
-                aria-label={`${cellLabel(cell)}${isConflict ? `, ${t("a11y.cellConflict")}` : ""}${
-                  isSelected ? `, ${t("a11y.cellSelected")}` : ""
-                }`}
+                aria-label={`${cellLabel(cell)}${cageLabel}${
+                  isConflict ? `, ${t("a11y.cellConflict")}` : ""
+                }${isSelected ? `, ${t("a11y.cellSelected")}` : ""}`}
                 aria-selected={isSelected}
                 aria-invalid={isConflict || undefined}
                 aria-readonly={data.given || undefined}
@@ -255,6 +323,11 @@ export function Board({
                 data-cell={cell}
               >
                 {isConflict ? <span className="conflict-badge" aria-hidden="true" /> : null}
+                {cageSum === undefined ? null : (
+                  <span className="cage-sum" aria-hidden="true">
+                    {cageSum}
+                  </span>
+                )}
                 {data.value ? (
                   <span className="cell-value" key={data.value}>
                     {displayDigit(data.value, digitStyle)}
@@ -312,6 +385,13 @@ export function Board({
                 } as React.CSSProperties
               }
             />
+          ))}
+        </span>
+      ) : null}
+      {cageInfo?.walls.length ? (
+        <span className="board-cages" aria-hidden="true">
+          {cageInfo.walls.map((wall, index) => (
+            <span key={index} className="cage-wall" style={wall} />
           ))}
         </span>
       ) : null}

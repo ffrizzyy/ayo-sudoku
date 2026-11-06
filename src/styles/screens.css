@@ -374,10 +374,11 @@
   gap: 5px;
 }
 
-/* Puzzle type and board size sit side by side above the difficulty grid. */
+/* Puzzle type and board size sit stacked above the difficulty grid: four
+   puzzle types no longer fit side by side on a phone. */
 .play-setup {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   margin-bottom: 0;
 }
@@ -3891,10 +3892,6 @@
   .mode-section {
     padding: 13px;
     border-radius: 22px;
-  }
-
-  .play-setup {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .daily-strip {

@@ -65,6 +65,7 @@ export const en = {
     classic: "Classic",
     diagonal: "X-Sudoku",
     windoku: "Windoku",
+    killer: "Killer",
   },
   home: {
     tagline: "Sudoku that feels like a little treat.",
@@ -506,6 +507,7 @@ export const en = {
     cellValue: "Row {row}, column {col}, {value}",
     cellGiven: "Row {row}, column {col}, {value}, given",
     cellConflict: "conflict",
+    cageSum: "cage sum {sum}",
     cellSelected: "selected",
     livePlaced: "Placed {value} at row {row}, column {col}.",
     liveConflict: "Conflict at row {row}, column {col}.",
@@ -583,6 +585,7 @@ export const id: Dictionary = {
     classic: "Klasik",
     diagonal: "X-Sudoku",
     windoku: "Windoku",
+    killer: "Killer",
   },
   home: {
     tagline: "Bermain Sudoku untuk sejenak melepas penat.",
@@ -1024,6 +1027,7 @@ export const id: Dictionary = {
     cellValue: "Baris {row}, kolom {col}, {value}",
     cellGiven: "Baris {row}, kolom {col}, {value}, angka awal",
     cellConflict: "konflik",
+    cageSum: "jumlah kandang {sum}",
     cellSelected: "dipilih",
     livePlaced: "Menempatkan {value} di baris {row}, kolom {col}.",
     liveConflict: "Konflik di baris {row}, kolom {col}.",

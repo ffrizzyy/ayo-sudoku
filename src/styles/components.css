@@ -667,9 +667,11 @@
   -webkit-user-select: none;
   touch-action: none;
   transition: filter 220ms var(--ease-out), opacity 220ms var(--ease-out);
-  /* Cell geometry in container units. Windoku windows are placed from these
-     without measuring the DOM; gaps and padding stay in pixels. */
-  --box-w: calc((100cqw - (var(--box-cols) + 1) * var(--board-box-gap)) / var(--box-cols));
+  /* Cell geometry in container units. Windoku windows and Killer cage walls are
+     placed from these without measuring the DOM; gaps and padding stay in
+     pixels. 100cqw is the content box, which already excludes the board padding,
+     so only the gaps *between* boxes are subtracted. */
+  --box-w: calc((100cqw - (var(--box-cols) - 1) * var(--board-box-gap)) / var(--box-cols));
   --cell-w: calc((var(--box-w) - (var(--cell-cols) - 1) * var(--board-cell-gap)) / var(--cell-cols));
   --box-pitch: calc(var(--box-w) + var(--board-box-gap));
   --cell-pitch: calc(var(--cell-w) + var(--board-cell-gap));
@@ -757,11 +759,51 @@
   border-radius: clamp(5px, 1.6cqw, 12px);
 }
 
+/* Killer: cage walls. Each wall is a thin line placed in the gutter between two
+   cells, so it never covers a digit or a sum; the overlay ignores pointer
+   events and the cage sums stay in their cells underneath. */
+.board-cages {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.cage-wall {
+  position: absolute;
+  display: block;
+  background: var(--cage-rule);
+  border-radius: 1px;
+}
+
+.cage-sum {
+  position: absolute;
+  top: 2%;
+  left: 7%;
+  z-index: 2;
+  color: var(--ink-2);
+  font-size: calc(100cqw / var(--board-size) * 0.2);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  pointer-events: none;
+}
+
+/* Killer: the sum sits in the top-left corner of the cage's first cell, so on a
+   killer board every empty cell gives that corner up. Reserving it everywhere
+   (not just in cells that carry a sum) keeps the pencil marks aligned. */
+.board.variant-killer .corner-marks {
+  inset: 28% 6% 5%;
+}
+
+.board.variant-killer .center-marks {
+  padding: 25% 8% 5%;
+}
+
 .cell.is-entry {
   color: var(--entry-ink);
   font-weight: 750;
 }
-
 .cell.is-peer {
   background: var(--peer-bg);
 }
@@ -1091,6 +1133,48 @@
   box-shadow:
     inset 0 2px 0 color-mix(in srgb, var(--ink) 22%, transparent),
     inset 2px 0 0 color-mix(in srgb, var(--ink) 22%, transparent);
+}
+
+/* Killer cages on the share preview: a sum in the cage's first cell and walls
+   that fill the grid gap, so the cage outline reads as one line. */
+.share-mini-cell {
+  position: relative;
+}
+
+.share-mini-cell.has-sum {
+  padding-top: 18%;
+}
+
+.share-mini-sum {
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  color: var(--ink-2);
+  font-size: clamp(0.3rem, 1vw, 0.5rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.share-mini-cell.cage-right::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  right: -2px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--cage-rule);
+}
+
+.share-mini-cell.cage-down::before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--cage-rule);
 }
 
 .share-code-block {

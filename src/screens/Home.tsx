@@ -12,7 +12,9 @@ import type { Size, Tier, Variant } from "../engine/types";
 
 const TIERS: Tier[] = ["cozy", "easy", "medium", "hard", "expert", "master"];
 const SIZES: Size[] = [9, 6, 4];
-const VARIANTS: Variant[] = ["classic", "diagonal", "windoku"];
+const VARIANTS: Variant[] = ["classic", "diagonal", "windoku", "killer"];
+/** Windoku and Killer are defined on the 9×9 grid only. */
+const NINE_ONLY: Variant[] = ["windoku", "killer"];
 const MODES: Array<{ value: "classic" | "daily" | "zen" | "challenge"; icon: "grid" | "calendar" | "heart" | "flame" }> = [
   { value: "classic", icon: "grid" },
   { value: "daily", icon: "calendar" },
@@ -275,7 +277,7 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
                   value={variant}
                   onChange={(value) => {
                     setVariant(value);
-                    if (value === "windoku") setSize(9);
+                    if (NINE_ONLY.includes(value)) setSize(9);
                   }}
                   label={t("home.chooseVariant")}
                   compact
@@ -286,7 +288,7 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
                     value: `${option}`,
                     label: `${option}×${option}`,
                     ariaLabel: t("home.boardSize", { size: `${option}×${option}` }),
-                    disabled: variant === "windoku" && option !== 9,
+                    disabled: NINE_ONLY.includes(variant) && option !== 9,
                   }))}
                   value={`${size}`}
                   onChange={(value) => setSize(Number(value) as Size)}

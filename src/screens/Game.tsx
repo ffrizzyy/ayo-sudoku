@@ -521,7 +521,7 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle, exitLabel }: Gam
     const current = sessionRef.current;
     if (current.status !== "playing") return;
     const values = current.cells.map((cell) => cell.value);
-    const candidates = buildCandidates(values, geom);
+    const candidates = buildCandidates(values, geom, current.puzzle.cages);
     const changes: CellChange[] = [];
     for (let cell = 0; cell < current.cells.length; cell++) {
       const before = current.cells[cell];
@@ -548,7 +548,7 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle, exitLabel }: Gam
     const current = sessionRef.current;
     if (current.status !== "playing") return;
     const values = current.cells.map((cell) => cell.value);
-    const plan = planHint(values, solutionValues, current.puzzle.spec);
+    const plan = planHint(values, solutionValues, current.puzzle.spec, current.puzzle.cages);
     setHintPlan(plan);
     setHintMessage(null);
     setHintOpen(true);
@@ -1131,6 +1131,7 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle, exitLabel }: Gam
             largeMarks={settings.largeText}
             completedCells={completedCells}
             dimmed={paused}
+            cages={session.puzzle.cages}
             highlightSame={settings.highlight.sameDigit}
             highlightPeers={settings.highlight.peers}
             highlightCandidates={settings.highlight.candidates}
