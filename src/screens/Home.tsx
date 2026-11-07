@@ -149,6 +149,14 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
 
       <main className="home-main">
         <section className={`home-hero ${latest ? "" : "is-solo"}`} aria-label={t("home.newGame")}>
+          <span className="home-mark" aria-hidden="true">
+            <span className="brand-grid">
+              {Array.from({ length: 4 }, (_, index) => (
+                <span key={index} className={index === 2 ? "is-lit" : ""} />
+              ))}
+            </span>
+          </span>
+
           <button type="button" className="play-card" onClick={() => setSetupOpen(true)}>
             <span className="play-card-icon">
               <Icon name="play" size={26} />

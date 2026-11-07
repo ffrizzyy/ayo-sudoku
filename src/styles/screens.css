@@ -96,7 +96,8 @@
 }
 
 .about-mark,
-.welcome-mark {
+.welcome-mark,
+.home-mark {
   display: grid;
   place-items: center;
   width: 52px;
@@ -107,6 +108,11 @@
     radial-gradient(90% 90% at 28% 18%, rgba(255, 255, 255, 0.4), transparent 60%),
     var(--accent);
   box-shadow: var(--shadow-accent), inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+
+.home-mark {
+  align-self: center;
+  margin: 0;
 }
 
 .brand-grid {
@@ -173,7 +179,9 @@
   padding: 10px clamp(16px, 4vw, 34px) 34px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
+  /* `safe` keeps the top of a tall hero reachable on short viewports. */
+  justify-content: safe center;
   gap: 14px;
 }
 
@@ -463,8 +471,32 @@
     align-items: stretch;
   }
 
+  /* The mark sits over the Play card, the action it belongs to, rather than
+     floating between two cards. A solo Play card spans the row, so the mark
+     centres over the full width. */
+  .home-mark {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: center;
+  }
+
+  .play-card {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .continue-card {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .home-hero.is-solo .home-mark {
+    grid-column: 1 / -1;
+  }
+
   .home-hero.is-solo .play-card {
     grid-column: 1 / -1;
+    grid-row: 2;
   }
 }
 
