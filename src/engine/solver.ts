@@ -1,7 +1,7 @@
 import { allMask, popcount } from "./bitset";
 import { getGeometry, type Geometry } from "./board";
 import { shuffle, type Rng } from "./prng";
-import type { BoardSpec, Cage } from "./types";
+import type { BoardSpec, Cage, Thermo } from "./types";
 
 interface MaskState {
   units: Int32Array;
@@ -19,6 +19,105 @@ interface CageState {
   used: Int32Array;
   empty: Int32Array;
   cells: number[][];
+}
+
+/**
+ * Thermo thermometers: each cell knows its line and position, so a cell mask
+ * can read the digits already placed at the other positions and bound itself
+ * between them. Strict increase also means no digit repeats inside a line.
+ */
+interface ThermoState {
+  lines: number[][];
+  /** cell -> line index, -1 when the cell carries no thermometer. */
+  lineOf: Int16Array;
+  /** cell -> position along its line. */
+  position: Int16Array;
+}
+
+function makeThermoState(
+  geom: Geometry,
+  thermos: readonly Thermo[],
+  values: readonly number[],
+): ThermoState | null {
+  const lineOf = new Int16Array(geom.cellCount).fill(-1);
+  const position = new Int16Array(geom.cellCount).fill(-1);
+  const lines: number[][] = [];
+
+  for (let lineIndex = 0; lineIndex < thermos.length; lineIndex++) {
+    const line = thermos[lineIndex];
+    if (line.length < 2 || line.length > geom.size) return null;
+    const local = new Set<number>();
+    for (let index = 0; index < line.length; index++) {
+      const cell = line[index];
+      if (cell < 0 || cell >= geom.cellCount || local.has(cell)) return null;
+      local.add(cell);
+      // A cell may only carry one thermometer; overlapping clues would make
+      // the drawn path ambiguous and the share payload larger.
+      if (lineOf[cell] !== -1) return null;
+      lineOf[cell] = lineIndex;
+      position[cell] = index;
+    }
+    // Assigned cells must already respect the ordering.
+    for (let a = 0; a < line.length; a++) {
+      const first = values[line[a]];
+      if (!first) continue;
+      for (let b = a + 1; b < line.length; b++) {
+        const second = values[line[b]];
+        if (second && second < first + (b - a)) return null;
+      }
+    }
+    lines.push([...line]);
+  }
+
+  return { lines, lineOf, position };
+}
+
+/** Bits for the digits between `low` and `high` inclusive. */
+function rangeMask(low: number, high: number, size: number): number {
+  const from = Math.max(1, low);
+  const to = Math.min(size, high);
+  if (from > to) return 0;
+  return ((1 << to) - 1) & ~((1 << (from - 1)) - 1);
+}
+
+/** Restricts thermo cells to digits that can still sit in increasing order. */
+function narrowThermoMasks(
+  thermo: ThermoState,
+  values: readonly number[],
+  masks: Int32Array | Uint16Array,
+  size: number,
+): boolean {
+  for (const line of thermo.lines) {
+    // Forward: a cell must be larger than the smallest digit the cell before
+    // it can still take, so whole runs of candidates fall away.
+    let low = 1;
+    for (const cell of line) {
+      const value = values[cell];
+      if (value) {
+        low = value + 1;
+        continue;
+      }
+      const allowed = masks[cell] & rangeMask(low, size, size);
+      if (!allowed) return false;
+      masks[cell] = allowed;
+      low = 32 - Math.clz32(allowed & -allowed) + 1;
+    }
+    // Backward: the same bound from the tip.
+    let high = size;
+    for (let index = line.length - 1; index >= 0; index--) {
+      const cell = line[index];
+      const value = values[cell];
+      if (value) {
+        high = value - 1;
+        continue;
+      }
+      const allowed = masks[cell] & rangeMask(1, high, size);
+      if (!allowed) return false;
+      masks[cell] = allowed;
+      high = 32 - Math.clz32(allowed) - 1;
+    }
+  }
+  return true;
 }
 
 function makeState(geom: Geometry, values: readonly number[]): MaskState | null {
@@ -113,9 +212,33 @@ function cellMask(
   geom: Geometry,
   state: MaskState,
   cages: CageState | null,
+  thermo: ThermoState | null,
+  values: readonly number[],
 ): number {
   let mask = allMask(geom.size);
   for (const unitIndex of geom.cellUnits[cell]) mask &= ~state.units[unitIndex];
+
+  if (thermo) {
+    const lineIndex = thermo.lineOf[cell];
+    if (lineIndex >= 0) {
+      const line = thermo.lines[lineIndex];
+      const at = thermo.position[cell];
+      // A line of length L needs room for the digits around this cell: at
+      // least `at` digits below it and `L - 1 - at` above it.
+      let low = at + 1;
+      let high = geom.size - (line.length - 1 - at);
+      for (let index = 0; index < line.length; index++) {
+        if (index === at) continue;
+        const value = values[line[index]];
+        if (!value) continue;
+        if (index < at) low = Math.max(low, value + (at - index));
+        else high = Math.min(high, value - (index - at));
+      }
+      mask &= rangeMask(low, high, geom.size);
+      if (!mask) return 0;
+    }
+  }
+
   if (!cages) return mask;
 
   const cageIndex = cages.index[cell];
@@ -190,6 +313,7 @@ interface Search {
   geom: Geometry;
   state: MaskState;
   cages: CageState | null;
+  thermo: ThermoState | null;
   values: number[];
   /** Reused per frame: candidate masks for every empty cell. */
   masks: Int32Array;
@@ -324,8 +448,18 @@ function propagateCages(search: Search): boolean {
  * or STATUS_OPEN with the most constrained remaining cell in `best`.
  */
 function narrow(search: Search, best: { cell: number; mask: number }): number {
-  const { geom, state, cages, values, masks, unitUnion, unitCount, stackCells, stackDigits } =
-    search;
+  const {
+    geom,
+    state,
+    cages,
+    thermo,
+    values,
+    masks,
+    unitUnion,
+    unitCount,
+    stackCells,
+    stackDigits,
+  } = search;
 
   for (let round = 0; round < 64; round++) {
     unitUnion.fill(0);
@@ -337,7 +471,7 @@ function narrow(search: Search, best: { cell: number; mask: number }): number {
         masks[cell] = 0;
         continue;
       }
-      const mask = cellMask(cell, geom, state, cages);
+      const mask = cellMask(cell, geom, state, cages, thermo, values);
       if (!mask) return STATUS_DEAD;
       masks[cell] = mask;
       empty++;
@@ -352,6 +486,7 @@ function narrow(search: Search, best: { cell: number; mask: number }): number {
     if (!empty) return STATUS_DONE;
 
     if (cages && !propagateCages(search)) return STATUS_DEAD;
+    if (thermo && !narrowThermoMasks(thermo, values, masks, geom.size)) return STATUS_DEAD;
 
     // A digit that no cell in a unit can hold means this branch is already lost;
     // a digit only one cell can hold is a placement, and placing it early keeps
@@ -370,7 +505,7 @@ function narrow(search: Search, best: { cell: number; mask: number }): number {
           (candidate) => !values[candidate] && masks[candidate] & bit,
         );
         if (cell === undefined) return STATUS_DEAD;
-        const live = cellMask(cell, geom, state, cages);
+        const live = cellMask(cell, geom, state, cages, thermo, values);
         if (!(live & bit)) return STATUS_DEAD;
         stackCells[search.stackSize] = cell;
         stackDigits[search.stackSize] = digit;
@@ -385,7 +520,7 @@ function narrow(search: Search, best: { cell: number; mask: number }): number {
     // fill in, so re-reading it is enough to stay correct.
     for (let cell = 0; cell < geom.cellCount; cell++) {
       if (values[cell]) continue;
-      const mask = cellMask(cell, geom, state, cages);
+      const mask = cellMask(cell, geom, state, cages, thermo, values);
       if (!mask) return STATUS_DEAD;
       if (mask & (mask - 1)) continue;
       const digit = 32 - Math.clz32(mask);
@@ -404,7 +539,7 @@ function narrow(search: Search, best: { cell: number; mask: number }): number {
   let bestCount = geom.size + 1;
   for (let cell = 0; cell < geom.cellCount; cell++) {
     if (values[cell]) continue;
-    const mask = cellMask(cell, geom, state, cages);
+    const mask = cellMask(cell, geom, state, cages, thermo, values);
     if (!mask) return STATUS_DEAD;
     const count = popcount(mask);
     if (count < bestCount) {
@@ -425,6 +560,7 @@ function openSearch(
   input: readonly number[],
   spec: BoardSpec,
   cages?: readonly Cage[],
+  thermos?: readonly Thermo[],
 ): Search | null {
   const geom = getGeometry(spec);
   const values = [...input];
@@ -433,10 +569,13 @@ function openSearch(
   if (!state) return null;
   const cageState = cages?.length ? makeCageState(geom, cages, values) : null;
   if (cages?.length && !cageState) return null;
+  const thermoState = thermos?.length ? makeThermoState(geom, thermos, values) : null;
+  if (thermos?.length && !thermoState) return null;
   return {
     geom,
     state,
     cages: cageState,
+    thermo: thermoState,
     values,
     masks: new Int32Array(geom.cellCount),
     unitUnion: new Int32Array(geom.units.length),
@@ -493,8 +632,9 @@ export function countSolutions(
   spec: BoardSpec,
   limit = 2,
   cages?: readonly Cage[],
+  thermos?: readonly Thermo[],
 ): number {
-  const search = openSearch(input, spec, cages);
+  const search = openSearch(input, spec, cages, thermos);
   if (!search) return 0;
   return countDfs(search, limit);
 }
@@ -509,8 +649,9 @@ export function findSolutions(
   spec: BoardSpec,
   limit = 2,
   cages?: readonly Cage[],
+  thermos?: readonly Thermo[],
 ): number[][] {
-  const search = openSearch(input, spec, cages);
+  const search = openSearch(input, spec, cages, thermos);
   if (!search) return [];
   const found: number[][] = [];
   const slot = { cell: -1, mask: 0 };
@@ -556,8 +697,9 @@ export function solve(
   input: readonly number[],
   spec: BoardSpec,
   cages?: readonly Cage[],
+  thermos?: readonly Thermo[],
 ): number[] | null {
-  const search = openSearch(input, spec, cages);
+  const search = openSearch(input, spec, cages, thermos);
   if (!search) return null;
   const slot = { cell: -1, mask: 0 };
   let answer: number[] | null = null;
@@ -631,7 +773,7 @@ export function randomSolution(spec: BoardSpec, rng: Rng): number[] | null {
     let bestCount = geom.size + 1;
     for (let cell = 0; cell < geom.cellCount; cell++) {
       if (values[cell]) continue;
-      const mask = cellMask(cell, geom, state, null);
+      const mask = cellMask(cell, geom, state, null, null, values);
       const count = popcount(mask);
       if (count === 0) return false;
       if (count < bestCount) {
@@ -661,6 +803,7 @@ export function buildCandidates(
   values: readonly number[],
   geom: Geometry,
   cages?: readonly Cage[],
+  thermos?: readonly Thermo[],
 ): Uint16Array {
   const candidates = new Uint16Array(geom.cellCount);
   const full = allMask(geom.size);
@@ -678,6 +821,7 @@ export function buildCandidates(
       if (value && cageIndex >= 0) cageUsed[cageIndex] |= 1 << (value - 1);
     }
   }
+  const thermo = thermos?.length ? makeThermoState(geom, thermos, values) : null;
   for (let cell = 0; cell < geom.cellCount; cell++) {
     if (values[cell]) continue;
     let mask = full;
@@ -687,7 +831,30 @@ export function buildCandidates(
     }
     const cageIndex = cageOf[cell];
     if (cageIndex >= 0) mask &= ~cageUsed[cageIndex];
+    if (thermo) {
+      const lineIndex = thermo.lineOf[cell];
+      if (lineIndex >= 0) {
+        const line = thermo.lines[lineIndex];
+        const at = thermo.position[cell];
+        let low = at + 1;
+        let high = geom.size - (line.length - 1 - at);
+        for (let index = 0; index < line.length; index++) {
+          if (index === at) continue;
+          const value = values[line[index]];
+          if (!value) continue;
+          if (index < at) low = Math.max(low, value + (at - index));
+          else high = Math.min(high, value - (index - at));
+        }
+        mask &= rangeMask(low, high, geom.size);
+      }
+    }
     candidates[cell] = mask;
+  }
+  if (thermo) {
+    // Candidate-based bounds between cells need the whole line, so they run
+    // over the array after the per-cell masks exist. A dead line leaves the
+    // offending cells empty, which is exactly what a dead puzzle looks like.
+    narrowThermoMasks(thermo, values, candidates, geom.size);
   }
   return candidates;
 }

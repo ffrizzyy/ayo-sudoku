@@ -7,6 +7,7 @@ import {
   type BoardSpec,
   type Cage,
   type PuzzleDef,
+  type Thermo,
   type Tier,
 } from "./types";
 
@@ -359,15 +360,223 @@ function generateKiller(options: GenerateOptions): GenerateResult {
 }
 
 /**
+ * Thermometer count and length per difficulty. Easier tiers get more (and
+ * therefore shorter) thermometers, which leaves fewer digits unconstrained;
+ * the given count below then separates the tiers further.
+ */
+const THERMO_SHAPES: Record<Tier, { count: number; min: number; max: number }> = {
+  cozy: { count: 22, min: 2, max: 4 },
+  easy: { count: 20, min: 3, max: 4 },
+  medium: { count: 18, min: 3, max: 5 },
+  hard: { count: 16, min: 3, max: 5 },
+  expert: { count: 14, min: 4, max: 6 },
+  master: { count: 12, min: 4, max: 6 },
+};
+
+/**
+ * Extra clues handed out before the ambiguity peel. Thermometers pin down
+ * order but not absolute values, so a handful of givens gives the peel a
+ * starting point and keeps generation quick.
+ */
+const THERMO_EXTRA_CLUES: Record<Tier, number> = {
+  cozy: 38,
+  easy: 32,
+  medium: 26,
+  hard: 22,
+  expert: 18,
+  master: 14,
+};
+
+/**
+ * Walks orthogonally over a finished solution and keeps every run whose digits
+ * strictly increase. Cells carry at most one thermometer, which keeps the
+ * drawn path readable and the share payload small.
+ */
+export function buildThermos(
+  solution: readonly number[],
+  spec: BoardSpec,
+  tier: Tier,
+  rng: Rng,
+): Thermo[] {
+  const geom = getGeometry(spec);
+  const size = spec.size;
+  const { count, min, max } = THERMO_SHAPES[tier];
+  const used = new Uint8Array(geom.cellCount);
+  const starts = shuffle(
+    Array.from({ length: geom.cellCount }, (_, index) => index),
+    rng,
+  );
+  const thermos: Thermo[] = [];
+
+  // A single pass leaves usable cells behind whenever a walk dies early, which
+  // is common on the longer, harder tiers. A few extra passes reclaim them.
+  for (let pass = 0; pass < 4 && thermos.length < count; pass++) {
+    let grew = false;
+    for (const start of starts) {
+      if (thermos.length >= count) break;
+      if (used[start]) continue;
+      const target = min + Math.floor(rng() * (max - min + 1));
+      const line = [start];
+      let cell = start;
+
+      while (line.length < target) {
+        const row = geom.rowOf[cell];
+        const col = geom.colOf[cell];
+        const neighbours: number[] = [];
+        if (row > 0) neighbours.push(cell - size);
+        if (row < size - 1) neighbours.push(cell + size);
+        if (col > 0) neighbours.push(cell - 1);
+        if (col < size - 1) neighbours.push(cell + 1);
+        const open = neighbours.filter(
+          (next) => !used[next] && solution[next] > solution[cell],
+        );
+        if (!open.length) break;
+        cell = open[Math.floor(rng() * open.length)];
+        line.push(cell);
+      }
+
+      if (line.length < min) continue;
+      for (const member of line) used[member] = 1;
+      thermos.push(line);
+      grew = true;
+    }
+    if (!grew) break;
+  }
+
+  thermos.sort((a, b) => a[0] - b[0]);
+  return thermos;
+}
+
+/**
+ * Thermo generation starts from a full solution, grows thermometers along the
+ * solution's rising runs, then adds givens until the grid is unique. The two
+ * solution comparison names exactly one cell to fix per round, so the peel is
+ * short and deterministic.
+ */
+function generateThermo(options: GenerateOptions): GenerateResult {
+  const { tier, spec } = options;
+  const seed = options.seed ?? `ayo-thermo-${tier}-${Date.now().toString(36)}`;
+  const started = Date.now();
+  const geom = getGeometry(spec);
+  const maxAttempts = options.maxAttempts ?? 24;
+  const extraClues = THERMO_EXTRA_CLUES[tier];
+
+  let best: PuzzleDef | null = null;
+  let attempt = 0;
+
+  for (; attempt < maxAttempts; attempt++) {
+    if (options.budgetMs && best && Date.now() - started > options.budgetMs) break;
+    const attemptSeed = `${seed}:${attempt}`;
+    const rng = sfc32(attemptSeed);
+    const solution = randomSolution(spec, rng);
+    if (!solution) continue;
+    const thermos = buildThermos(solution, spec, tier, rng);
+    if (thermos.length < 6) continue;
+
+    const givens = new Array<number>(geom.cellCount).fill(0);
+    const order = shuffle(
+      Array.from({ length: geom.cellCount }, (_, index) => index),
+      rng,
+    );
+    for (const cell of order.slice(0, extraClues)) givens[cell] = solution[cell];
+
+    let solved = false;
+    for (let guard = 0; guard <= geom.cellCount; guard++) {
+      const answers = findSolutions(givens, spec, 2, undefined, thermos);
+      if (answers.length === 0) break; // Thermometers contradict the solution: retry.
+      if (answers.length === 1) {
+        solved = true;
+        break;
+      }
+      const [first, second] = answers;
+      const differ: number[] = [];
+      for (let cell = 0; cell < geom.cellCount; cell++) {
+        if (first[cell] !== second[cell]) differ.push(cell);
+      }
+      if (!differ.length) break;
+      const pick = differ[Math.floor(rng() * differ.length)];
+      givens[pick] = solution[pick];
+    }
+    if (!solved) continue;
+
+    const idSeed = (cyrb128(attemptSeed)[0] >>> 0).toString(36);
+    best = {
+      id: `gen:thermo:${idSeed}`,
+      spec,
+      givens: givens.map((value) => (value ? String(value) : "0")).join(""),
+      solution: solution.map((value) => String(value)).join(""),
+      tier,
+      // Average thermometer length, mirroring Killer's use of average cage
+      // size: it only feeds the par-time estimate.
+      gradeScore:
+        thermos.reduce((total, line) => total + line.length, 0) / thermos.length,
+      techniques: {},
+      thermos,
+      seed,
+      source: "generated",
+    };
+    break;
+  }
+
+  if (!best) {
+    // Last resort: start from the fully revealed solution and take clues away
+    // while the thermometers keep exactly one answer. Every check runs with
+    // plenty of givens, so it is quick.
+    const rng = sfc32(`${seed}:fallback`);
+    const solution =
+      randomSolution(spec, rng) ?? new Array<number>(geom.cellCount).fill(0);
+    if (!solution.some(Boolean)) {
+      for (let cell = 0; cell < geom.cellCount; cell++) {
+        const row = Math.floor(cell / 9);
+        const col = cell % 9;
+        solution[cell] = (3 * (row % 3) + Math.floor(row / 3) + col) % 9 + 1;
+      }
+    }
+    const thermos = buildThermos(solution, spec, tier, rng);
+    const givens = [...solution];
+    const order = shuffle(
+      Array.from({ length: geom.cellCount }, (_, index) => index),
+      rng,
+    );
+    for (const cell of order) {
+      const keep = givens[cell];
+      givens[cell] = 0;
+      if (countSolutions(givens, spec, 2, undefined, thermos) !== 1) givens[cell] = keep;
+    }
+    best = {
+      id: `gen:thermo:${(cyrb128(`${seed}:fallback`)[0] >>> 0).toString(36)}`,
+      spec,
+      givens: givens.map((value) => (value ? String(value) : "0")).join(""),
+      solution: solution.map((value) => String(value)).join(""),
+      tier,
+      gradeScore:
+        thermos.reduce((total, line) => total + line.length, 0) / thermos.length,
+      techniques: {},
+      thermos,
+      seed,
+      source: "generated",
+    };
+  }
+
+  return {
+    puzzle: best,
+    attempts: attempt + 1,
+    elapsedMs: Date.now() - started,
+    exactTierMatch: true,
+  };
+}
+
+/**
  * Generates a uniquely solvable, logic-solvable puzzle. Attempts are made until
  * the computed difficulty matches the request, the attempt budget runs out, or
  * the time budget expires. The closest attempt is returned as a fallback.
  */
 export function generatePuzzle(options: GenerateOptions): GenerateResult {
   const { tier, spec } = options;
-  // Killer is generated from cages rather than from carved clues, so it has
-  // its own pipeline.
+  // Killer and Thermo are generated from their clue payload rather than from
+  // carved clues, so they have their own pipelines.
   if (spec.variant === "killer") return generateKiller(options);
+  if (spec.variant === "thermo") return generateThermo(options);
   const requestedIndex = TIERS.indexOf(tier);
   const seed = options.seed ?? `ayo-${tier}-${Date.now().toString(36)}`;
   const started = Date.now();

@@ -250,6 +250,85 @@ describe("generator", () => {
     expect(plan.placement).toBeDefined();
     expect(solution[plan.placement!.cell]).toBe(plan.placement!.digit);
   }, 60000);
+
+  it("generates a thermo puzzle with increasing thermometers", () => {
+    const spec = makeSpec(9, "thermo");
+    const geom = getGeometry(spec);
+    const result = generatePuzzle({ tier: "medium", spec, seed: "thermo-medium" });
+    const thermos = result.puzzle.thermos ?? [];
+    expect(thermos.length).toBeGreaterThan(5);
+    expect(result.puzzle.spec.variant).toBe("thermo");
+
+    const seen = new Set<number>();
+    for (const line of thermos) {
+      expect(line.length).toBeGreaterThanOrEqual(2);
+      line.forEach((cell, index) => {
+        expect(seen.has(cell)).toBe(false);
+        seen.add(cell);
+        if (index === 0) return;
+        const previous = line[index - 1];
+        const rowGap = Math.abs(geom.rowOf[cell] - geom.rowOf[previous]);
+        const colGap = Math.abs(geom.colOf[cell] - geom.colOf[previous]);
+        expect(rowGap + colGap).toBe(1);
+        expect(Number(result.puzzle.solution[cell])).toBeGreaterThan(
+          Number(result.puzzle.solution[previous]),
+        );
+      });
+    }
+    expect(seen.size).toBe(thermos.reduce((total, line) => total + line.length, 0));
+
+    const values = parseGrid(result.puzzle.givens, geom);
+    expect(countSolutions(values, spec, 2, undefined, thermos)).toBe(1);
+    const solved = solve(values, spec, undefined, thermos);
+    expect(formatGrid(solved!)).toBe(result.puzzle.solution);
+  }, 60000);
+
+  it("keeps thermometers in the share code", () => {
+    const spec = makeSpec(9, "thermo");
+    const result = generatePuzzle({ tier: "easy", spec, seed: "thermo-share" });
+    const code = encodeShareCode(result.puzzle);
+    const decoded = decodeShareCode(code);
+    expect(decoded.spec.variant).toBe("thermo");
+    expect(decoded.spec.size).toBe(9);
+    expect(decoded.thermos).toEqual(result.puzzle.thermos);
+    const puzzle = puzzleFromShareCode(code);
+    expect(puzzle.solution).toBe(result.puzzle.solution);
+    expect(puzzle.thermos).toEqual(result.puzzle.thermos);
+    // A thermo code must carry its lines, and a bare grid must not be read as
+    // a thermometer puzzle.
+    const classic = generatePuzzle({ tier: "easy", spec: makeSpec(9), seed: "thermo-classic" });
+    expect(() =>
+      decodeShareCode(
+        encodeShareCode({
+          ...classic.puzzle,
+          spec: makeSpec(9, "thermo"),
+          thermos: undefined,
+        }),
+      ),
+    ).toThrow();
+  }, 60000);
+
+  it("treats thermometers as real ordering constraints", () => {
+    const spec = makeSpec(9, "thermo");
+    const values = parseGrid(PUZZLE, getGeometry(spec));
+    // PUZZLE's solution rises along cells 1, 2, 3 (3, 4, 6).
+    expect(countSolutions(values, spec, 2, undefined, [[1, 2, 3]])).toBe(1);
+    expect(countSolutions(values, spec, 2, undefined, [[3, 2, 1]])).toBe(0);
+    // A malformed line is rejected outright.
+    expect(countSolutions(values, spec, 2, undefined, [[0, 0]])).toBe(0);
+    // Thermo is a 9x9 variant; smaller boards fall back to classic.
+    expect(makeSpec(6, "thermo").variant).toBe("classic");
+  });
+
+  it("hints from the solution when thermometers make techniques unavailable", () => {
+    const spec = makeSpec(9, "thermo");
+    const result = generatePuzzle({ tier: "medium", spec, seed: "thermo-hint" });
+    const values = parseGrid(result.puzzle.givens, getGeometry(spec));
+    const solution = result.puzzle.solution.split("").map(Number);
+    const plan = planHint(values, solution, spec, undefined, result.puzzle.thermos);
+    expect(plan.placement).toBeDefined();
+    expect(solution[plan.placement!.cell]).toBe(plan.placement!.digit);
+  }, 60000);
 });
 
 describe("share codes", () => {

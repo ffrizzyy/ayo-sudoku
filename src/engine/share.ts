@@ -9,6 +9,7 @@ import {
   type Cage,
   type PuzzleDef,
   type Size,
+  type Thermo,
   type Tier,
   type Variant,
 } from "./types";
@@ -21,9 +22,13 @@ const VARIANT_BITS: Record<Variant, number> = {
   diagonal: 0b100,
   windoku: 0b1000,
   killer: 0b10000,
+  thermo: 0b100000,
 };
-/** Killer codes carry one byte per cell, so they are longer than v1 codes. */
-const MAX_CODE_LENGTH = 512;
+/**
+ * Killer codes carry one byte per cell and Thermo codes carry every line, so
+ * they are longer than v1 codes.
+ */
+const MAX_CODE_LENGTH = 768;
 
 function base64urlEncode(bytes: Uint8Array): string {
   let output = "";
@@ -83,13 +88,22 @@ function encodeCages(cages: readonly Cage[], cellCount: number): number[] {
   return [ordered.length, ...ordered.map((cage) => cage.sum), ...ids];
 }
 
+/** Thermo payload: the count, then a length and the cells for every line. */
+function encodeThermos(thermos: readonly Thermo[]): number[] {
+  const ordered = [...thermos].sort((a, b) => a[0] - b[0]);
+  const body = [ordered.length];
+  for (const line of ordered) body.push(line.length, ...line);
+  return body;
+}
+
 export function encodeShareCode(puzzle: PuzzleDef): string {
   const size = puzzle.spec.size;
   const geom = getGeometry(puzzle.spec);
   const givens = parseGrid(puzzle.givens, geom);
   const cages = puzzle.spec.variant === "killer" ? puzzle.cages : undefined;
+  const thermos = puzzle.spec.variant === "thermo" ? puzzle.thermos : undefined;
   const body: number[] = [];
-  body.push(cages?.length ? 2 : 1);
+  body.push(thermos?.length ? 3 : cages?.length ? 2 : 1);
   const variantBits = SIZE_CODE[size] | VARIANT_BITS[puzzle.spec.variant];
   body.push(variantBits);
   body.push(TIERS.indexOf(puzzle.tier));
@@ -101,6 +115,7 @@ export function encodeShareCode(puzzle: PuzzleDef): string {
   }
 
   if (cages?.length) body.push(...encodeCages(cages, geom.cellCount));
+  if (thermos?.length) body.push(...encodeThermos(thermos));
 
   const withoutCrc = Uint8Array.from(body);
   const crc = crc16(withoutCrc);
@@ -117,6 +132,7 @@ export interface DecodedCode {
   givens: string;
   values: number[];
   cages?: Cage[];
+  thermos?: Thermo[];
 }
 
 export function decodeShareCode(code: string): DecodedCode {
@@ -126,7 +142,7 @@ export function decodeShareCode(code: string): DecodedCode {
   const bytes = base64urlDecode(trimmed);
   if (bytes.length < 6) throw new Error("code.tooShort");
   const version = bytes[0];
-  if (version !== 1 && version !== 2) throw new Error("code.version");
+  if (version !== 1 && version !== 2 && version !== 3) throw new Error("code.version");
 
   const variantBits = bytes[1];
   const size = CODE_SIZE[variantBits & 0b011];
@@ -134,18 +150,25 @@ export function decodeShareCode(code: string): DecodedCode {
   const windoku = (variantBits & 0b1000) !== 0;
   const diagonal = (variantBits & 0b100) !== 0;
   const killer = (variantBits & 0b10000) !== 0;
+  const thermo = (variantBits & 0b100000) !== 0;
   // Each variant redefines the grid in a way the others cannot share, and
-  // Windoku and Killer are 9x9 only.
-  if ([windoku, diagonal, killer].filter(Boolean).length > 1) throw new Error("code.variant");
-  if ((windoku || killer) && size !== 9) throw new Error("code.variant");
-  if (killer && version === 1) throw new Error("code.variant");
-  const variant: Variant = killer
-    ? "killer"
-    : windoku
-      ? "windoku"
-      : diagonal
-        ? "diagonal"
-        : "classic";
+  // Windoku, Killer and Thermo are 9x9 only.
+  if ([windoku, diagonal, killer, thermo].filter(Boolean).length > 1) {
+    throw new Error("code.variant");
+  }
+  if ((windoku || killer || thermo) && size !== 9) throw new Error("code.variant");
+  if (killer && version !== 2) throw new Error("code.variant");
+  if (thermo && version !== 3) throw new Error("code.variant");
+  if (version === 3 && !thermo) throw new Error("code.variant");
+  const variant: Variant = thermo
+    ? "thermo"
+    : killer
+      ? "killer"
+      : windoku
+        ? "windoku"
+        : diagonal
+          ? "diagonal"
+          : "classic";
   const spec = makeSpec(size, variant);
 
   const tier = TIERS[bytes[2]];
@@ -168,6 +191,7 @@ export function decodeShareCode(code: string): DecodedCode {
   }
 
   let cages: Cage[] | undefined;
+  let thermos: Thermo[] | undefined;
   if (killer) {
     const start = 3 + packed;
     if (bytes.length < start + 1 + 2) throw new Error("code.length");
@@ -189,13 +213,47 @@ export function decodeShareCode(code: string): DecodedCode {
     }
     if (grouped.some((cells) => !cells.length)) throw new Error("code.cages");
     cages = grouped.map((cells, index) => ({ cells, sum: sums[index] }));
+  } else if (thermo) {
+    const start = 3 + packed;
+    const end = bytes.length - 2;
+    if (end <= start) throw new Error("code.length");
+    const count = bytes[start];
+    if (!count) throw new Error("code.thermo");
+    let offset = start + 1;
+    const lines: Thermo[] = [];
+    const seen = new Set<number>();
+    for (let lineIndex = 0; lineIndex < count; lineIndex++) {
+      if (offset >= end) throw new Error("code.length");
+      const length = bytes[offset++];
+      if (length < 2 || length > geom.size) throw new Error("code.thermo");
+      if (offset + length > end) throw new Error("code.length");
+      const line: number[] = [];
+      for (let index = 0; index < length; index++) {
+        const cell = bytes[offset++];
+        if (cell >= geom.cellCount || seen.has(cell)) throw new Error("code.thermo");
+        if (line.length) {
+          const previous = line[line.length - 1];
+          const rowGap = Math.abs(geom.rowOf[cell] - geom.rowOf[previous]);
+          const colGap = Math.abs(geom.colOf[cell] - geom.colOf[previous]);
+          // A thermometer is a path of edge neighbours, never a jump.
+          if (rowGap + colGap !== 1) throw new Error("code.thermo");
+        }
+        seen.add(cell);
+        line.push(cell);
+      }
+      lines.push(line);
+    }
+    if (offset !== end) throw new Error("code.length");
+    thermos = lines;
   } else {
     const expected = 3 + packed + 2;
     if (bytes.length !== expected) throw new Error("code.length");
   }
 
   const givens = values.map((value) => (value ? String(value) : "0")).join("");
-  return cages ? { spec, tier, givens, values, cages } : { spec, tier, givens, values };
+  if (cages) return { spec, tier, givens, values, cages };
+  if (thermos) return { spec, tier, givens, values, thermos };
+  return { spec, tier, givens, values };
 }
 
 export function puzzleFromValues(
@@ -204,44 +262,59 @@ export function puzzleFromValues(
   tier?: Tier,
   source: PuzzleDef["source"] = "imported",
   cages?: readonly Cage[],
+  thermos?: readonly Thermo[],
 ): PuzzleDef {
   const geom = getGeometry(spec);
   if (values.length !== geom.cellCount) throw new Error("puzzle.size");
   const cageList = cages?.length ? cages : undefined;
+  const thermoList = thermos?.length ? thermos : undefined;
   if (!!cageList !== (spec.variant === "killer")) throw new Error("puzzle.variant");
-  const solutions = countSolutions(values, spec, 2, cageList);
+  if (!!thermoList !== (spec.variant === "thermo")) throw new Error("puzzle.variant");
+  const solutions = countSolutions(values, spec, 2, cageList, thermoList);
   if (solutions !== 1) throw new Error(solutions === 0 ? "puzzle.invalid" : "puzzle.multiple");
-  const solution = solve(values, spec, cageList);
+  const solution = solve(values, spec, cageList, thermoList);
   if (!solution) throw new Error("puzzle.invalid");
   const grade = gradePuzzle(values, spec);
   const resolvedTier = tier ?? grade.hardestTier;
   const givens = values.map((value) => (value ? String(value) : "0")).join("");
   const solutionString = solution.map((value) => String(value)).join("");
   const idHash = (cyrb128(`${spec.size}:${spec.variant}:${givens}`)[0] >>> 0).toString(36);
+  const cluePayload = cageList
+    ? cageList.reduce((total, cage) => total + cage.cells.length, 0) / cageList.length
+    : thermoList
+      ? thermoList.reduce((total, line) => total + line.length, 0) / thermoList.length
+      : null;
   return {
     id: `${source}:${idHash}`,
     spec,
     givens,
     solution: solutionString,
     tier: resolvedTier,
-    // The technique grader does not know about cages, so Killer reports the
-    // average cage size instead; it only feeds the par-time estimate.
-    gradeScore: cageList
-      ? cageList.reduce((total, cage) => total + cage.cells.length, 0) / cageList.length
-      : grade.score,
-    techniques: cageList
+    // The technique grader does not know about cages or thermometers, so those
+    // variants report their average clue size instead; it only feeds the
+    // par-time estimate.
+    gradeScore: cluePayload ?? grade.score,
+    techniques: cageList || thermoList
       ? {}
       : (Object.fromEntries(
           Object.entries(grade.techniques).filter(([, count]) => (count ?? 0) > 0),
         ) as Record<string, number>),
     ...(cageList ? { cages: cageList.map((cage) => ({ cells: [...cage.cells], sum: cage.sum })) } : {}),
+    ...(thermoList ? { thermos: thermoList.map((line) => [...line]) } : {}),
     source,
   };
 }
 
 export function puzzleFromShareCode(code: string): PuzzleDef {
   const decoded = decodeShareCode(code);
-  return puzzleFromValues(decoded.values, decoded.spec, decoded.tier, "imported", decoded.cages);
+  return puzzleFromValues(
+    decoded.values,
+    decoded.spec,
+    decoded.tier,
+    "imported",
+    decoded.cages,
+    decoded.thermos,
+  );
 }
 
 export type ImportResult =

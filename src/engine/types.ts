@@ -3,7 +3,7 @@
  */
 
 export type Size = 4 | 6 | 9;
-export type Variant = "classic" | "diagonal" | "windoku" | "killer";
+export type Variant = "classic" | "diagonal" | "windoku" | "killer" | "thermo";
 export type Tier = "cozy" | "easy" | "medium" | "hard" | "expert" | "master";
 export type Difficulty = Tier;
 
@@ -25,6 +25,13 @@ export interface Cage {
   sum: number;
 }
 
+/**
+ * Thermo Sudoku thermometer: cells from the bulb (first) to the tip (last).
+ * The digits strictly increase along the line. Consecutive cells are
+ * orthogonally adjacent.
+ */
+export type Thermo = number[];
+
 export interface PuzzleDef {
   id: string;
   spec: BoardSpec;
@@ -37,6 +44,8 @@ export interface PuzzleDef {
   techniques: Record<string, number>;
   /** Killer only: every cage, in display order. */
   cages?: Cage[];
+  /** Thermo only: every thermometer, bulb first. */
+  thermos?: Thermo[];
   seed?: string;
   source: "generated" | "handcrafted" | "imported";
   author?: string;
@@ -50,11 +59,13 @@ export const BOX_DIMS: Record<Size, { boxRows: number; boxCols: number }> = {
 };
 
 export function makeSpec(size: Size, variant: Variant = "classic"): BoardSpec {
-  // Windoku and Killer are defined on the 9x9 grid: Windoku needs the four
-  // extra 3x3 windows, Killer needs cages on a full-size board. Smaller boards
-  // fall back to classic instead of producing a puzzle that cannot follow the
-  // rules it advertises.
+  // Windoku, Killer and Thermo are defined on the 9x9 grid: Windoku needs the
+  // four extra 3x3 windows, Killer needs cages and Thermo needs long enough
+  // runs of strictly increasing digits. Smaller boards fall back to classic
+  // instead of producing a puzzle that cannot follow the rules it advertises.
   const resolved: Variant =
-    (variant === "windoku" || variant === "killer") && size !== 9 ? "classic" : variant;
+    (variant === "windoku" || variant === "killer" || variant === "thermo") && size !== 9
+      ? "classic"
+      : variant;
   return { size, variant: resolved, ...BOX_DIMS[size] };
 }

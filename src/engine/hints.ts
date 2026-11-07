@@ -7,7 +7,7 @@ import {
   type Placement,
   type TechniqueId,
 } from "./techniques";
-import type { BoardSpec, Cage } from "./types";
+import type { BoardSpec, Cage, Thermo } from "./types";
 
 export type HintKind = "wrong" | "conflict" | "step" | "solution";
 
@@ -63,16 +63,17 @@ function wrongEntries(values: readonly number[], solution: readonly number[]): n
  * Plans a three step hint. The caller decides how much to reveal:
  * nudge shows the unit, pointer shows the cells, reveal shows the placement.
  *
- * Killer passes its cages: the technique solver only knows rows, columns,
- * boxes, diagonals and windows, so a hint there comes from cage-aware
- * candidates (a naked single) and otherwise reveals the next cell of the
- * solution.
+ * Killer and Thermo pass their clue payload: the technique solver only knows
+ * rows, columns, boxes, diagonals and windows, so a hint there comes from the
+ * clue-aware candidates (a naked single) and otherwise reveals the next cell
+ * of the solution.
  */
 export function planHint(
   values: readonly number[],
   solution: readonly number[],
   spec: BoardSpec,
   cages?: readonly Cage[],
+  thermos?: readonly Thermo[],
 ): HintPlan {
   const geom = getGeometry(spec);
   const wrong = wrongEntries(values, solution);
@@ -87,8 +88,8 @@ export function planHint(
     };
   }
 
-  if (cages?.length) {
-    const candidates = buildCandidates(values, geom, cages);
+  if (cages?.length || thermos?.length) {
+    const candidates = buildCandidates(values, geom, cages, thermos);
     let single = -1;
     for (let cell = 0; cell < geom.cellCount; cell++) {
       if (values[cell]) continue;
