@@ -142,6 +142,36 @@ async function drawCard(puzzle: PuzzleDef, tierLabel: string, timeLabel: string,
     }
   }
 
+  // Thermo: rising paths drawn before the digits so the numbers stay on top.
+  const thermos = puzzle.spec.variant === "thermo" ? puzzle.thermos : undefined;
+  if (thermos?.length) {
+    ctx.save();
+    ctx.strokeStyle = dark ? "rgba(235,235,245,0.4)" : "rgba(60,60,67,0.34)";
+    ctx.fillStyle = dark ? "rgba(235,235,245,0.28)" : "rgba(60,60,67,0.22)";
+    ctx.lineWidth = Math.max(2, cell * 0.085);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    const centre = (index: number) => ({
+      x: boardX + (geom.colOf[index] + 0.5) * cell,
+      y: boardY + (geom.rowOf[index] + 0.5) * cell,
+    });
+    for (const line of thermos) {
+      if (line.length < 2) continue;
+      const bulb = centre(line[0]);
+      ctx.beginPath();
+      ctx.arc(bulb.x, bulb.y, cell * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      line.forEach((index, position) => {
+        const point = centre(index);
+        if (position === 0) ctx.moveTo(point.x, point.y);
+        else ctx.lineTo(point.x, point.y);
+      });
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   // Killer: cage walls in the gutters and one sum per cage.
   const cages = puzzle.spec.variant === "killer" ? puzzle.cages : undefined;
   if (cages?.length) {
@@ -222,6 +252,32 @@ function MiniBoard({ puzzle }: { puzzle: PuzzleDef }) {
   const size = puzzle.spec.size;
   const cells = size * size;
   const cages = puzzle.spec.variant === "killer" ? puzzle.cages : undefined;
+  const thermos = puzzle.spec.variant === "thermo" ? puzzle.thermos : undefined;
+  const thermoInfo = useMemo(() => {
+    if (!thermos?.length) return null;
+    const geom = getGeometry(puzzle.spec);
+    const marks = new Map<number, Array<{ d: string; bulb: boolean }>>();
+    const edge = (cell: number, other: number): string => {
+      if (geom.rowOf[other] < geom.rowOf[cell]) return "50 0";
+      if (geom.rowOf[other] > geom.rowOf[cell]) return "50 100";
+      return geom.colOf[other] < geom.colOf[cell] ? "0 50" : "100 50";
+    };
+    for (const line of thermos) {
+      line.forEach((cell, index) => {
+        const entry = index > 0 ? edge(cell, line[index - 1]) : null;
+        const exit = index < line.length - 1 ? edge(cell, line[index + 1]) : null;
+        const d = entry
+          ? exit
+            ? `M ${entry} L 50 50 L ${exit}`
+            : `M ${entry} L 50 50`
+          : `M 50 50 L ${exit}`;
+        const list = marks.get(cell) ?? [];
+        list.push({ d, bulb: index === 0 });
+        marks.set(cell, list);
+      });
+    }
+    return marks;
+  }, [thermos, puzzle.spec]);
   const cageInfo = useMemo(() => {
     if (!cages?.length) return null;
     const owner = new Int16Array(cells).fill(-1);
@@ -255,8 +311,20 @@ function MiniBoard({ puzzle }: { puzzle: PuzzleDef }) {
               sum === undefined ? "" : "has-sum"
             } ${cageRight ? "cage-right" : ""} ${cageDown ? "cage-down" : ""}`}
           >
+            {thermoInfo?.get(index)?.map((mark, markIndex) => (
+              <svg
+                key={`thermo-${markIndex}`}
+                className="share-mini-thermo"
+                viewBox="0 0 100 100"
+                aria-hidden="true"
+                focusable="false"
+              >
+                {mark.bulb ? <circle className="thermo-bulb" cx="50" cy="50" r="22" /> : null}
+                <path className="thermo-line" d={mark.d} />
+              </svg>
+            ))}
             {sum === undefined ? null : <span className="share-mini-sum">{sum}</span>}
-            {value || ""}
+            <span className="share-mini-value">{value || ""}</span>
           </span>
         );
       })}

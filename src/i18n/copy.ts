@@ -66,6 +66,7 @@ export const en = {
     diagonal: "X-Sudoku",
     windoku: "Windoku",
     killer: "Killer",
+    thermo: "Thermo",
   },
   home: {
     tagline: "Sudoku that feels like a little treat.",
@@ -508,6 +509,7 @@ export const en = {
     cellGiven: "Row {row}, column {col}, {value}, given",
     cellConflict: "conflict",
     cageSum: "cage sum {sum}",
+    thermoCount: "{count} thermometers",
     cellSelected: "selected",
     livePlaced: "Placed {value} at row {row}, column {col}.",
     liveConflict: "Conflict at row {row}, column {col}.",
@@ -586,6 +588,7 @@ export const id: Dictionary = {
     diagonal: "X-Sudoku",
     windoku: "Windoku",
     killer: "Killer",
+    thermo: "Termo",
   },
   home: {
     tagline: "Bermain Sudoku untuk sejenak melepas penat.",
@@ -1028,6 +1031,7 @@ export const id: Dictionary = {
     cellGiven: "Baris {row}, kolom {col}, {value}, angka awal",
     cellConflict: "konflik",
     cageSum: "jumlah kandang {sum}",
+    thermoCount: "{count} termometer",
     cellSelected: "dipilih",
     livePlaced: "Menempatkan {value} di baris {row}, kolom {col}.",
     liveConflict: "Konflik di baris {row}, kolom {col}.",

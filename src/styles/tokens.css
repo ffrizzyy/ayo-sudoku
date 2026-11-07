@@ -52,6 +52,8 @@
   --board-rule: #c7c7d6;
   /* Killer cage walls: quieter than --board-rule so they sit under the block grid. */
   --cage-rule: #8a8aa3;
+  /* Thermo lines: a warm tone that reads on the cell and under the digit. */
+  --thermo-rule: #b07b5e;
   --board-box-gap: 8px;
   --board-cell-gap: 3px;
   --given-ink: #26262b;
@@ -118,6 +120,7 @@
   --board-given: #26262a;
   --board-rule: #3c3c48;
   --cage-rule: #6a6a80;
+  --thermo-rule: #c99477;
   --given-ink: #f5f5fa;
   --peer-bg: color-mix(in srgb, var(--accent) 15%, #1d1d20);
   --same-bg: color-mix(in srgb, var(--accent) 42%, #1d1d20);
@@ -194,6 +197,7 @@
   --board-given: #eeeeF3;
   --board-rule: #a7a7ba;
   --cage-rule: #5f5f75;
+  --thermo-rule: #8a5b40;
 }
 [data-theme="dark"][data-contrast="high"] {
   --ink-2: rgba(255, 255, 255, 0.86);
@@ -204,6 +208,7 @@
   --board-given: #303036;
   --board-rule: #5c5c6b;
   --cage-rule: #8b8ba3;
+  --thermo-rule: #d8a98b;
 }
 
 [data-cvd="deuteranopia"],

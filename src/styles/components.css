@@ -230,6 +230,33 @@
   font-size: 0.74rem;
 }
 
+/* Five puzzle types do not fit one row on a narrow phone: let the chips wrap
+   into a balanced grid instead of overlapping. The sliding thumb cannot follow
+   a wrapped grid, so the active chip carries its own pill. */
+.segmented-wrap {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  gap: 4px;
+}
+
+.segmented-wrap .segmented-thumb {
+  display: none;
+}
+
+.segmented-wrap .segmented-item {
+  padding-inline: 0.4rem;
+}
+
+.segmented-wrap .segmented-item.is-active {
+  background: var(--surface);
+  box-shadow: 0 2px 7px rgba(17, 17, 20, 0.1), 0 0 0 0.5px var(--line);
+}
+
+[data-theme="dark"] .segmented-wrap .segmented-item.is-active {
+  background: var(--surface-2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 0.5px var(--line);
+}
+
 /* ---------- Settings rows and switches ---------- */
 
 .switch-row,
@@ -675,6 +702,7 @@
   --cell-w: calc((var(--box-w) - (var(--cell-cols) - 1) * var(--board-cell-gap)) / var(--cell-cols));
   --box-pitch: calc(var(--box-w) + var(--board-box-gap));
   --cell-pitch: calc(var(--cell-w) + var(--board-cell-gap));
+  --thermo-w: max(2px, calc(var(--cell-w) * 0.09));
 }
 
 [data-theme="dark"] .board {
@@ -789,6 +817,50 @@
   pointer-events: none;
 }
 
+/* Thermo: each cell carries its slice of the thermometer as an inline SVG.
+   The path sits under the digit and the pencil marks, so it never hides a
+   number; the bulb is a filled circle at the start of the line. */
+.cell-thermo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.thermo-line {
+  fill: none;
+  stroke: var(--thermo-rule);
+  stroke-width: 9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The bulb sits under the digit and the pencil marks, so it is larger than the
+   glyph and translucent: the clue stays readable without hiding what is on top
+   of it. */
+.thermo-bulb {
+  fill: color-mix(in srgb, var(--thermo-rule) 62%, transparent);
+  stroke: none;
+}
+
+/* The slice inside a cell stops at its edge, so the gutter gets a short link.
+   It lives between cells and can never cover a digit. */
+.board-thermo-links {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.thermo-link {
+  position: absolute;
+  display: block;
+  border-radius: 1px;
+  background: var(--thermo-rule);
+}
+
 /* Killer: the sum sits in the top-left corner of the cage's first cell, so on a
    killer board every empty cell gives that corner up. Reserving it everywhere
    (not just in cells that carry a sum) keeps the pencil marks aligned. */
@@ -864,6 +936,8 @@
 }
 
 .cell-value {
+  position: relative;
+  z-index: 1;
   display: block;
   animation: digit-in 160ms var(--ease-spring) both;
 }
@@ -1153,6 +1227,21 @@
   font-size: clamp(0.3rem, 1vw, 0.5rem);
   font-weight: 800;
   line-height: 1;
+}
+
+/* Thermo preview: same slice-under-the-digit rule as the real board. */
+.share-mini-thermo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.share-mini-value {
+  position: relative;
+  z-index: 1;
 }
 
 .share-mini-cell.cage-right::after {

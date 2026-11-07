@@ -70,6 +70,7 @@ export function Segmented<T extends string>({
   onChange,
   label,
   compact,
+  wrap,
   className = "",
 }: {
   options: Array<{ value: T; label: ReactNode; ariaLabel?: string; disabled?: boolean }>;
@@ -77,12 +78,14 @@ export function Segmented<T extends string>({
   onChange: (value: T) => void;
   label: string;
   compact?: boolean;
+  /** Let the chips wrap on narrow screens instead of overlapping. */
+  wrap?: boolean;
   className?: string;
 }) {
   const index = Math.max(0, options.findIndex((option) => option.value === value));
   return (
     <div
-      className={`segmented ${compact ? "segmented-compact" : ""} ${className}`}
+      className={`segmented ${compact ? "segmented-compact" : ""} ${wrap ? "segmented-wrap" : ""} ${className}`}
       role="tablist"
       aria-label={label}
       style={{ ["--seg-count" as string]: options.length, ["--seg-index" as string]: index }}

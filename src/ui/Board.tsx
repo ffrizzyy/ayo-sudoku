@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { getGeometry, type BoardSpec, type Cage } from "../engine";
+import { getGeometry, type BoardSpec, type Cage, type Thermo } from "../engine";
 import type { CellSnapshot } from "../app/storage";
 import { useI18n } from "../i18n";
 import { maskToDigits } from "../engine/bitset";
@@ -25,6 +25,26 @@ export function displayDigit(digit: number, style: string): string {
   return String(digit);
 }
 
+/** CSS expressions for a cell's position and the gutter beside it. */
+function makeCellGeometry(spec: BoardSpec) {
+  const cellLeft = (col: number) =>
+    `calc(var(--board-box-gap) + ${Math.floor(col / spec.boxCols)} * var(--box-pitch) + ${
+      col % spec.boxCols
+    } * var(--cell-pitch))`;
+  const cellTop = (row: number) =>
+    `calc(var(--board-box-gap) + ${Math.floor(row / spec.boxRows)} * var(--box-pitch) + ${
+      row % spec.boxRows
+    } * var(--cell-pitch))`;
+  const gapH = (col: number) =>
+    `var(${col % spec.boxCols === spec.boxCols - 1 ? "--board-box-gap" : "--board-cell-gap"})`;
+  const gapV = (row: number) =>
+    `var(${row % spec.boxRows === spec.boxRows - 1 ? "--board-box-gap" : "--board-cell-gap"})`;
+  /** The gap before a column/row (after the previous one). */
+  const gapHBefore = (col: number) => gapH(col > 0 ? col - 1 : 0);
+  const gapVBefore = (row: number) => gapV(row > 0 ? row - 1 : 0);
+  return { cellLeft, cellTop, gapH, gapV, gapHBefore, gapVBefore };
+}
+
 interface BoardProps {
   spec: BoardSpec;
   cells: CellSnapshot[];
@@ -38,6 +58,8 @@ interface BoardProps {
   dimmed?: boolean;
   /** Killer only: the cages drawn over the grid. */
   cages?: readonly Cage[];
+  /** Thermo only: the thermometers, bulb first. */
+  thermos?: readonly Thermo[];
   highlightSame: boolean;
   highlightPeers: boolean;
   highlightCandidates: boolean;
@@ -58,6 +80,7 @@ export function Board({
   completedCells,
   dimmed,
   cages,
+  thermos,
   highlightSame,
   highlightPeers,
   highlightCandidates,
@@ -67,6 +90,7 @@ export function Board({
 }: BoardProps) {
   const { t } = useI18n();
   const geom = useMemo(() => getGeometry(spec), [spec]);
+  const cellGeo = useMemo(() => makeCellGeometry(spec), [spec]);
   const diagonalCells = useMemo(
     () => (spec.variant === "diagonal" ? new Set(geom.diagonals.flat()) : null),
     [spec.variant, geom],
@@ -83,21 +107,7 @@ export function Board({
       sums.set(Math.min(...cage.cells), cage.sum);
     });
 
-    const cellLeft = (col: number) =>
-      `calc(var(--board-box-gap) + ${Math.floor(col / spec.boxCols)} * var(--box-pitch) + ${
-        col % spec.boxCols
-      } * var(--cell-pitch))`;
-    const cellTop = (row: number) =>
-      `calc(var(--board-box-gap) + ${Math.floor(row / spec.boxRows)} * var(--box-pitch) + ${
-        row % spec.boxRows
-      } * var(--cell-pitch))`;
-    const gapH = (col: number) =>
-      `var(${col % spec.boxCols === spec.boxCols - 1 ? "--board-box-gap" : "--board-cell-gap"})`;
-    const gapV = (row: number) =>
-      `var(${row % spec.boxRows === spec.boxRows - 1 ? "--board-box-gap" : "--board-cell-gap"})`;
-    /** The gap before a column/row (after the previous one). */
-    const gapHBefore = (col: number) => gapH(col > 0 ? col - 1 : 0);
-    const gapVBefore = (row: number) => gapV(row > 0 ? row - 1 : 0);
+    const { cellLeft, cellTop, gapH, gapV, gapHBefore, gapVBefore } = cellGeo;
 
     const walls: React.CSSProperties[] = [];
     const edge = (gap: string, hasNeighbour: boolean) => (hasNeighbour ? `${gap} / 2` : "0px");
@@ -133,7 +143,63 @@ export function Board({
       }
     }
     return { owner, sums, walls };
-  }, [cages, geom, spec]);
+  }, [cages, geom, spec, cellGeo]);
+  // Thermo: each cell draws the slice of every thermometer that passes through
+  // it, and the gutter between two cells gets a connector so the line reads as
+  // one path. Both pieces stay outside the digits' space: the cell slice is
+  // painted under the digit and marks, the connector sits in the gap.
+  const thermoInfo = useMemo(() => {
+    if (!thermos?.length) return null;
+    const { cellLeft, cellTop, gapH, gapV } = cellGeo;
+    const marks = new Map<number, Array<{ d: string; bulb: boolean }>>();
+    const links: React.CSSProperties[] = [];
+    const edge = (cell: number, other: number): string => {
+      if (geom.rowOf[other] < geom.rowOf[cell]) return "50 0";
+      if (geom.rowOf[other] > geom.rowOf[cell]) return "50 100";
+      return geom.colOf[other] < geom.colOf[cell] ? "0 50" : "100 50";
+    };
+    for (const line of thermos) {
+      line.forEach((cell, index) => {
+        const entry = index > 0 ? edge(cell, line[index - 1]) : null;
+        const exit = index < line.length - 1 ? edge(cell, line[index + 1]) : null;
+        const d = entry
+          ? exit
+            ? `M ${entry} L 50 50 L ${exit}`
+            : `M ${entry} L 50 50`
+          : `M 50 50 L ${exit}`;
+        const list = marks.get(cell) ?? [];
+        list.push({ d, bulb: index === 0 });
+        marks.set(cell, list);
+      });
+      for (let index = 0; index < line.length - 1; index++) {
+        const from = line[index];
+        const to = line[index + 1];
+        const row = geom.rowOf[from];
+        const col = geom.colOf[from];
+        if (geom.rowOf[to] === row) {
+          const boundary = Math.min(col, geom.colOf[to]);
+          // Overlap each cell by 1px so rounding at the cell edge cannot leave a
+          // hairline seam; the link keeps the line colour, so the overlap is
+          // invisible and stays out of the digit's area.
+          links.push({
+            left: `calc(${cellLeft(boundary)} + var(--cell-w) - 1px)`,
+            top: `calc(${cellTop(row)} + (var(--cell-w) - var(--thermo-w)) / 2)`,
+            width: `calc(${gapH(boundary)} + 2px)`,
+            height: "var(--thermo-w)",
+          });
+        } else {
+          const boundary = Math.min(row, geom.rowOf[to]);
+          links.push({
+            left: `calc(${cellLeft(col)} + (var(--cell-w) - var(--thermo-w)) / 2)`,
+            top: `calc(${cellTop(boundary)} + var(--cell-w) - 1px)`,
+            width: "var(--thermo-w)",
+            height: `calc(${gapV(boundary)} + 2px)`,
+          });
+        }
+      }
+    }
+    return { marks, links };
+  }, [thermos, geom, cellGeo]);
   const dragging = useRef(false);
   const longPressTimer = useRef<number | null>(null);
   const longPressFired = useRef(false);
@@ -241,7 +307,9 @@ export function Board({
     <div
       className={`board variant-${spec.variant} ${dimmed ? "is-dimmed" : ""}`}
       role="grid"
-      aria-label={t("a11y.board", { size: spec.size })}
+      aria-label={`${t("a11y.board", { size: spec.size })}${
+        thermos?.length ? `, ${t("a11y.thermoCount", { count: thermos.length })}` : ""
+      }`}
       aria-rowcount={spec.size}
       aria-colcount={spec.size}
       style={{
@@ -322,6 +390,18 @@ export function Board({
                 }}
                 data-cell={cell}
               >
+                {thermoInfo?.marks.get(cell)?.map((mark, index) => (
+                  <svg
+                    key={`thermo-${index}`}
+                    className="cell-thermo"
+                    viewBox="0 0 100 100"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    {mark.bulb ? <circle className="thermo-bulb" cx="50" cy="50" r="22" /> : null}
+                    <path className="thermo-line" d={mark.d} />
+                  </svg>
+                ))}
                 {isConflict ? <span className="conflict-badge" aria-hidden="true" /> : null}
                 {cageSum === undefined ? null : (
                   <span className="cage-sum" aria-hidden="true">
@@ -392,6 +472,13 @@ export function Board({
         <span className="board-cages" aria-hidden="true">
           {cageInfo.walls.map((wall, index) => (
             <span key={index} className="cage-wall" style={wall} />
+          ))}
+        </span>
+      ) : null}
+      {thermoInfo?.links.length ? (
+        <span className="board-thermo-links" aria-hidden="true">
+          {thermoInfo.links.map((link, index) => (
+            <span key={index} className="thermo-link" style={link} />
           ))}
         </span>
       ) : null}

@@ -12,9 +12,9 @@ import type { Size, Tier, Variant } from "../engine/types";
 
 const TIERS: Tier[] = ["cozy", "easy", "medium", "hard", "expert", "master"];
 const SIZES: Size[] = [9, 6, 4];
-const VARIANTS: Variant[] = ["classic", "diagonal", "windoku", "killer"];
-/** Windoku and Killer are defined on the 9×9 grid only. */
-const NINE_ONLY: Variant[] = ["windoku", "killer"];
+const VARIANTS: Variant[] = ["classic", "diagonal", "windoku", "killer", "thermo"];
+/** Windoku, Killer and Thermo are defined on the 9×9 grid only. */
+const NINE_ONLY: Variant[] = ["windoku", "killer", "thermo"];
 const MODES: Array<{ value: "classic" | "daily" | "zen" | "challenge"; icon: "grid" | "calendar" | "heart" | "flame" }> = [
   { value: "classic", icon: "grid" },
   { value: "daily", icon: "calendar" },
@@ -281,6 +281,7 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
                   }}
                   label={t("home.chooseVariant")}
                   compact
+                  wrap
                   className="setup-segmented setup-variant"
                 />
                 <Segmented
