@@ -2,6 +2,12 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.4.4] — 2026-11-07
+
+### Changed
+
+- **Home is a landing page again.** Play sits in the middle of the space between the header and the footer, and the 52px brand tile returns above it — centred over the Play card on desktop, or over the row when Play is alone. The header, page width, title size and tab bar stay on the shared frame, and `safe center` keeps a tall hero reachable on short screens.
+
 ## [1.4.3] — 2026-11-07
 
 ### Changed
