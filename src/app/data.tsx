@@ -2,7 +2,9 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -26,8 +28,8 @@ import {
   type PuzzleBest,
   type Totals,
 } from "./storage";
+import { newlyUnlocked } from "./achievements";
 import { LESSONS } from "./lessons";
-import { PACKS } from "./packs";
 
 interface DataValue {
   results: GameResult[];
@@ -99,40 +101,6 @@ export function bestStarsByPuzzle(
   return best;
 }
 
-function newlyUnlocked(
-  results: GameResult[],
-  daily: Record<string, DailyRecord>,
-  packs: PackProgress,
-  meta: Meta,
-  totals: Totals,
-): string[] {
-  const ids: string[] = [];
-  const wins = results.filter((result) => result.won);
-  if (totals.wins >= 1) ids.push("firstWin");
-  if (totals.wins >= 10) ids.push("tenWins");
-  if (totals.wins >= 100) ids.push("hundredWins");
-  if (wins.some((result) => result.hints === 0)) ids.push("noHints");
-  if (wins.some((result) => result.mistakes === 0)) ids.push("noMistakes");
-  if (wins.some((result) => ["hard", "expert", "master"].includes(result.tier))) ids.push("hardWin");
-  if (wins.some((result) => result.tier === "master")) ids.push("masterWin");
-  const streaks = computeStreaks(daily);
-  if (streaks.best >= 7) ids.push("streak7");
-  if (streaks.best >= 30) ids.push("streak30");
-  if (PACKS.some((pack) => pack.puzzles.every((puzzle) => packs[puzzle.id]))) ids.push("packComplete");
-  if (wins.some((result) => result.tier === "cozy" && result.timeMs < 120000)) ids.push("cozyFast");
-  if (meta.modesUsed && meta.modesUsed.length >= 4) ids.push("allModes");
-  if (meta.lessonsLearned.length >= LESSONS.length) ids.push("learnComplete");
-  if (meta.shared) ids.push("shared");
-  if (meta.languagesPlayed.length >= 2) ids.push("threeLanguages");
-  if (
-    wins.some(
-      (result) => result.mode === "challenge" && (result.livesLeft ?? 0) === 3,
-    )
-  ) {
-    ids.push("challengePerfect");
-  }
-  return ids;
-}
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const [results, setResults] = useState<GameResult[]>(readResults);
@@ -141,6 +109,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [achievements, setAchievements] = useState<Record<string, number>>(readAchievements);
   const [meta, setMeta] = useState<Meta>(readMeta);
   const [totals, setTotals] = useState<Totals>(readTotals);
+  const backfilled = useRef(false);
 
   const commitAchievements = useCallback(
     (current: Record<string, number>, candidates: string[]): { next: Record<string, number>; added: string[] } => {
@@ -154,6 +123,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
     },
     [],
   );
+
+  // Earlier releases could not evaluate the variant and mini achievements.
+  // Grant whatever the stored results already prove, once per launch.
+  useEffect(() => {
+    if (backfilled.current) return;
+    backfilled.current = true;
+    const candidates = newlyUnlocked(
+      results,
+      packs,
+      meta,
+      totals,
+      computeStreaks(daily).best,
+    );
+    const { next, added } = commitAchievements(achievements, candidates);
+    if (added.length) setAchievements(next);
+    // Mount only: the goal is to catch up with data that predates the rules.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const recordResult = useCallback(
     (result: GameResult): string[] => {
@@ -228,7 +215,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       writeTotals(nextTotals);
       setTotals(nextTotals);
 
-      const candidates = newlyUnlocked(nextResults, nextDaily, nextPacks, nextMeta, nextTotals);
+      const candidates = newlyUnlocked(
+        nextResults,
+        nextPacks,
+        nextMeta,
+        nextTotals,
+        computeStreaks(nextDaily).best,
+      );
       const { next: nextAchievements, added } = commitAchievements(achievements, candidates);
       if (added.length) setAchievements(nextAchievements);
       return added;

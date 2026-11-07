@@ -46,4 +46,4 @@ Run `pnpm check` before every commit and `pnpm build` before every push. This re
 - A puzzle is deterministic from its seed. Daily seeds are `ayo-daily-YYYY-MM-DD` in UTC.
 - `SavedGame` is a command log plus a cursor. Board mutations must produce reversible `CellChange[]`.
 - The service worker registers in production only; test offline behavior with `pnpm build && pnpm preview`.
-- Win/lose recording lives in `src/screens/Game.tsx`; stats and achievements are derived in `src/app/data.tsx`.
+- Win/lose recording lives in `src/screens/Game.tsx`; totals are derived in `src/app/data.tsx` and achievement rules live in `src/app/achievements.ts`.

@@ -308,6 +308,17 @@ export function SettingsScreen({ onNavigate, onReplayOnboarding, installed, canI
 
         <section className="settings-card">
           <h2>
+            <Icon name="import" size={19} /> {t("settings.puzzles")}
+          </h2>
+          <SettingRow label={t("import.title")} description={t("settings.importPuzzleNote")}>
+            <Button variant="tinted" icon="chevron-right" onClick={() => onNavigate("/import")}>
+              {t("common.open")}
+            </Button>
+          </SettingRow>
+        </section>
+
+        <section className="settings-card">
+          <h2>
             <Icon name="clipboard" size={19} /> {t("settings.data")}
           </h2>
           <SettingRow label={t("settings.exportData")} description={t("settings.exportNote")}>

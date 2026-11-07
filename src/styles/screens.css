@@ -186,6 +186,7 @@
   padding: 10px clamp(16px, 4vw, 34px) 34px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 14px;
 }
 
@@ -194,14 +195,6 @@
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-}
-
-.home-links {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  min-width: 0;
-  align-content: start;
 }
 
 /* The single Play entry point: no setup controls on the landing view. */
@@ -475,92 +468,17 @@
   margin-top: 2px;
 }
 
-/* Two-column landing layout: Play and Continue on the left, shortcuts right. */
+/* Play and Continue share the frame on desktop; a lone Play card spans it. */
 @media (min-width: 900px) {
-  .home-main {
+  .home-hero {
     display: grid;
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-    align-items: start;
-    align-content: center;
-    gap: 18px;
+    align-items: stretch;
   }
 
-  .home-links {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .home-hero.is-solo .play-card {
+    grid-column: 1 / -1;
   }
-}
-
-@media (max-width: 899px) {
-  .home-main {
-    justify-content: center;
-  }
-}
-
-@media (max-width: 520px) {
-  .home-links {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.quick-card {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  min-width: 0;
-  padding: 13px;
-  border-radius: 19px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-  text-align: left;
-  transition: transform 160ms var(--ease-spring), border-color 160ms var(--ease-out);
-}
-
-.quick-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--line-strong);
-}
-
-.quick-card:active {
-  transform: scale(0.98);
-}
-
-.quick-icon {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  flex: none;
-  border-radius: 13px;
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.quick-daily .quick-icon {
-  background: var(--warning-soft);
-  color: var(--warning);
-}
-
-.quick-packs .quick-icon {
-  background: var(--purple-soft);
-  color: var(--purple);
-}
-
-.quick-copy {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-}
-
-.quick-copy strong {
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
-.quick-chevron {
-  color: var(--ink-3);
-  flex: none;
 }
 
 .home-footer {
@@ -1888,7 +1806,7 @@
 
 .tier-stat-row {
   display: grid;
-  grid-template-columns: 60px minmax(0, 1fr) auto;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
   align-items: center;
   gap: 9px;
 }
@@ -3713,17 +3631,31 @@
 
   .stats-chart-card {
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 2 / span 2;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
   }
 
-  .stats-tier-card {
+  .stats-chart-card .game-chart {
+    flex: 1;
+    height: auto;
+    min-height: 200px;
+  }
+
+  .stats-tier-difficulty {
     grid-column: 2;
     grid-row: 2;
   }
 
+  .stats-tier-variant {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
   .achievement-card {
     grid-column: 1 / -1;
-    grid-row: 3;
+    grid-row: 4;
   }
 
   .achievement-grid {
@@ -3732,12 +3664,12 @@
 
   .recent-card {
     grid-column: 1;
-    grid-row: 4;
+    grid-row: 5;
   }
 
   .streak-card {
     grid-column: 2;
-    grid-row: 4;
+    grid-row: 5;
   }
 
   /* Settings: a masonry of independent cards, not one long scroll. */
@@ -4021,7 +3953,7 @@
   }
 
   .tier-stat-row {
-    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-columns: 78px minmax(0, 1fr);
   }
 
   .tier-stat-value {

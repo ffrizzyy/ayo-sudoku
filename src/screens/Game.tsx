@@ -707,6 +707,7 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle, exitLabel }: Gam
       mode: session.mode,
       tier: session.puzzle.tier,
       size: session.puzzle.spec.size,
+      variant: session.puzzle.spec.variant,
       timeMs: Math.round(session.elapsedMs),
       mistakes: session.mistakes,
       hints:

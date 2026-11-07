@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 import { useData } from "../app/data";
+import { ACHIEVEMENTS, resultVariant } from "../app/achievements";
+import { VARIANTS } from "../app/variants";
 import { useI18n, formatDuration, formatDate } from "../i18n";
 import { Icon, StarIcon } from "../ui/Icon";
 import { Pill, ProgressRing, StarRow } from "../ui/primitives";
@@ -7,25 +9,6 @@ import { BubbleBackdrop } from "../ui/BubbleBackdrop";
 import type { Tier } from "../engine/types";
 
 const TIERS: Tier[] = ["cozy", "easy", "medium", "hard", "expert", "master"];
-
-const ACHIEVEMENTS = [
-  "firstWin",
-  "tenWins",
-  "hundredWins",
-  "noHints",
-  "noMistakes",
-  "hardWin",
-  "masterWin",
-  "streak7",
-  "streak30",
-  "packComplete",
-  "cozyFast",
-  "allModes",
-  "learnComplete",
-  "shared",
-  "threeLanguages",
-  "challengePerfect",
-] as const;
 
 export function Stats() {
   const { t, locale } = useI18n();
@@ -49,6 +32,17 @@ export function Stats() {
       games: games.length,
       wins: tierWins.length,
       best: tierWins.length ? Math.min(...tierWins.map((result) => result.timeMs)) : 0,
+    };
+  });
+
+  const perVariant = VARIANTS.map((variant) => {
+    const games = data.results.filter((result) => resultVariant(result) === variant);
+    const variantWins = games.filter((result) => result.won);
+    return {
+      variant,
+      games: games.length,
+      wins: variantWins.length,
+      best: variantWins.length ? Math.min(...variantWins.map((result) => result.timeMs)) : 0,
     };
   });
 
@@ -119,7 +113,7 @@ export function Stats() {
           )}
         </section>
 
-        <section className="stats-tier-card">
+        <section className="stats-tier-card stats-tier-difficulty">
           <div className="card-head">
             <h2>{t("stats.perTier")}</h2>
           </div>
@@ -127,6 +121,30 @@ export function Stats() {
             {perTier.map((row) => (
               <div key={row.tier} className="tier-stat-row">
                 <span className="tier-stat-name">{t(`tier.${row.tier}`)}</span>
+                <span className="tier-stat-track">
+                  <span style={{ width: `${row.games ? (row.wins / row.games) * 100 : 0}%` }} />
+                </span>
+                <span className="tier-stat-value">
+                  {row.games
+                    ? t("stats.tierSummary", {
+                        games: row.games,
+                        time: row.best ? formatDuration(row.best) : "—",
+                      })
+                    : "—"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="stats-tier-card stats-tier-variant">
+          <div className="card-head">
+            <h2>{t("stats.perVariant")}</h2>
+          </div>
+          <div className="tier-stats">
+            {perVariant.map((row) => (
+              <div key={row.variant} className="tier-stat-row">
+                <span className="tier-stat-name">{t(`variant.${row.variant}`)}</span>
                 <span className="tier-stat-track">
                   <span style={{ width: `${row.games ? (row.wins / row.games) * 100 : 0}%` }} />
                 </span>
@@ -187,9 +205,11 @@ export function Stats() {
                   </span>
                   <span className="recent-copy">
                     <strong>
-                      {t(`mode.${result.mode}`)} · {t(`tier.${result.tier}`)}
+                      {t(`variant.${resultVariant(result)}`)} · {t(`tier.${result.tier}`)}
                     </strong>
-                    <small>{formatDate(result.finishedAt, locale)}</small>
+                    <small>
+                      {t(`mode.${result.mode}`)} · {formatDate(result.finishedAt, locale)}
+                    </small>
                   </span>
                   <span className="recent-time tabular">{formatDuration(result.timeMs)}</span>
                   <span className="recent-stars">

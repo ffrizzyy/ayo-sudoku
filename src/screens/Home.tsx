@@ -8,13 +8,11 @@ import { Icon, StarIcon } from "../ui/Icon";
 import { Button, ProgressRing, Segmented, Sheet } from "../ui/primitives";
 import { BubbleBackdrop } from "../ui/BubbleBackdrop";
 import { CREDITS } from "../config/credits";
+import { NINE_ONLY, VARIANTS } from "../app/variants";
 import type { Size, Tier, Variant } from "../engine/types";
 
 const TIERS: Tier[] = ["cozy", "easy", "medium", "hard", "expert", "master"];
 const SIZES: Size[] = [9, 6, 4];
-const VARIANTS: Variant[] = ["classic", "diagonal", "windoku", "killer", "thermo"];
-/** Windoku, Killer and Thermo are defined on the 9×9 grid only. */
-const NINE_ONLY: Variant[] = ["windoku", "killer", "thermo"];
 const MODES: Array<{ value: "classic" | "daily" | "zen" | "challenge"; icon: "grid" | "calendar" | "heart" | "flame" }> = [
   { value: "classic", icon: "grid" },
   { value: "daily", icon: "calendar" },
@@ -88,6 +86,17 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
     .filter(Boolean)
     .join(" · ");
 
+  /** The resume card names the puzzle the same way the game subline does. */
+  const latestLabel = latest
+    ? [
+        latest.puzzle.spec.variant !== "classic" ? t(`variant.${latest.puzzle.spec.variant}`) : "",
+        t(`tier.${latest.puzzle.tier}`),
+        latest.mode !== "classic" ? t(`mode.${latest.mode}`) : "",
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : "";
+
   const handlePrimary = () => {
     setSetupOpen(false);
     if (mode === "daily") {
@@ -147,7 +156,7 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
       </header>
 
       <main className="home-main">
-        <section className="home-hero" aria-label={t("home.newGame")}>
+        <section className={`home-hero ${latest ? "" : "is-solo"}`} aria-label={t("home.newGame")}>
           <button type="button" className="play-card" onClick={() => setSetupOpen(true)}>
             <span className="play-card-icon">
               <Icon name="play" size={26} />
@@ -168,12 +177,7 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
               </ProgressRing>
               <span className="continue-copy">
                 <span className="continue-eyebrow">{t("home.continueTitle")}</span>
-                <span className="continue-title">
-                  {t("home.continueSubtitle", {
-                    mode: t(`mode.${latest.mode}`),
-                    tier: t(`tier.${latest.puzzle.tier}`),
-                  })}
-                </span>
+                <span className="continue-title">{latestLabel}</span>
                 <span className="continue-meta">
                   {t("home.progress", {
                     filled: latest.cells.filter((cell) => cell.value > 0).length,
@@ -186,48 +190,6 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
               </span>
             </button>
           ) : null}
-        </section>
-
-        <section className="home-links" aria-label={t("nav.home")}>
-          <button type="button" className="quick-card quick-daily" onClick={() => (dailyDone ? onNavigate("/daily") : onDaily())}>
-            <span className="quick-icon">
-              <Icon name="calendar" size={22} />
-            </span>
-            <span className="quick-copy">
-              <strong>{t("home.dailyCard")}</strong>
-            </span>
-            <Icon name="chevron-right" size={18} className="quick-chevron" />
-          </button>
-
-          <button type="button" className="quick-card quick-packs" onClick={() => onNavigate("/packs")}>
-            <span className="quick-icon">
-              <Icon name="grid" size={22} />
-            </span>
-            <span className="quick-copy">
-              <strong>{t("home.packsCard")}</strong>
-            </span>
-            <Icon name="chevron-right" size={18} className="quick-chevron" />
-          </button>
-
-          <button type="button" className="quick-card" onClick={() => onPlay("classic", "easy", 6, "classic")}>
-            <span className="quick-icon">
-              <Icon name="grid" size={20} />
-            </span>
-            <span className="quick-copy">
-              <strong>{t("home.miniTitle")}</strong>
-            </span>
-            <Icon name="chevron-right" size={18} className="quick-chevron" />
-          </button>
-
-          <button type="button" className="quick-card" onClick={() => onNavigate("/import")}>
-            <span className="quick-icon">
-              <Icon name="import" size={20} />
-            </span>
-            <span className="quick-copy">
-              <strong>{t("import.title")}</strong>
-            </span>
-            <Icon name="chevron-right" size={18} className="quick-chevron" />
-          </button>
         </section>
       </main>
 

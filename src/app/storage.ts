@@ -1,4 +1,4 @@
-import { type PuzzleDef, type Tier } from "../engine/types";
+import { type PuzzleDef, type Tier, type Variant } from "../engine/types";
 
 export type GameMode = "classic" | "daily" | "zen" | "challenge" | "pack" | "learn" | "import";
 export type SaveSlot = "classic" | "daily" | "zen" | "challenge" | "pack" | "learn" | "import";
@@ -60,6 +60,8 @@ export interface GameResult {
   mode: GameMode;
   tier: Tier;
   size: number;
+  /** Missing on results recorded before variants were tracked; treat as classic. */
+  variant?: Variant;
   timeMs: number;
   mistakes: number;
   hints: number;
