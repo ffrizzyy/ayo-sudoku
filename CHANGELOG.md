@@ -2,6 +2,23 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.3.0] — 2026-11-07
+
+Thermo Sudoku arrives: rising lines with a bulb at one end, a line-aware solver and generation that starts from a solution.
+
+### Added
+
+- **Thermo Sudoku.** Lines of cells must strictly increase from the bulb to the tip. Thermo is 9×9 only; 6×6 and 4×4 are disabled while it is selected.
+- **Line-aware engine.** The solver validates every line, bounds each cell between the digits already placed on the line, and runs a forward and backward candidate pass so impossible runs fall away early. `buildCandidates` applies the same bounds for hints and auto marks.
+- **Thermo generation.** Lines grow along rising runs on a complete solution, then the generator compares the first two solutions and adds a given where they differ until the puzzle is unique. A full-reveal fallback handles the rare attempt that does not converge.
+- **Thermo share codes.** Version 3 codes carry the line count and, per line, its length and cells; decoding checks adjacency, overlap and the version pairing. The share card and its downloadable image draw the same lines and bulbs.
+- Thermo hints use line-aware candidates for a naked single and otherwise reveal the next solution cell.
+
+### Changed
+
+- The puzzle type picker now has five entries (Classic, X-Sudoku, Windoku, Killer, Thermo). The chips wrap into a balanced grid on narrow phones instead of overlapping; 3+2 at 390–430px, 2+2+1 at 320px, one row on a desktop sheet.
+- Thermo lines are drawn inside the cells as SVG slices plus gutter connectors. The slice sits under the digit and pencil marks, and the bulb is translucent and larger than the glyph so it stays visible on a given cell without hiding it.
+
 ## [1.2.0] — 2026-11-07
 
 Killer Sudoku arrives: cages with sums, a cage-aware solver and generation that starts from a solution.
