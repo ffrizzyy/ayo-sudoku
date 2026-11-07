@@ -25,7 +25,7 @@ A first attempt fixed the alignment by giving every screen its own width (`--scr
   - About: story on the left, reference cards on the right, credit block and actions full width.
   - Import: paste box on the left, live preview and help stacked on the right.
 - Below 900px nothing changes: one column, same order as before.
-- Home is deliberately outside this frame. It is the landing page, with its own brand header and a narrow hero column; it is not one of the tabbed content screens.
+- Home is deliberately outside this frame. It is the landing page, with its own brand header and a narrow hero column; it is not one of the tabbed content screens. **Superseded by ADR 0012:** Home now shares the frame, while keeping its own two-action composition.
 
 ## Consequences
 

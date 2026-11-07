@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { CREDITS } from "./config/credits";
 import { useI18n } from "./i18n";
 import { useSettings } from "./app/settings";
@@ -37,6 +37,16 @@ function readRoute(): string {
   const path = raw.startsWith("/") ? raw : `/${raw}`;
   const clean = path.length > 1 ? path.replace(/\/+$/, "") : path;
   return clean || "/";
+}
+
+/** Left-to-right rank of the five primary tabs, used to pick a slide direction. */
+function tabIndex(path: string): number {
+  if (path === "/") return 0;
+  if (path === "/daily") return 1;
+  if (path === "/packs" || path.startsWith("/pack/")) return 2;
+  if (path === "/learn" || path.startsWith("/lesson/")) return 3;
+  if (path === "/stats") return 4;
+  return -1;
 }
 
 function useHashRoute(): [string, (path: string) => void] {
@@ -128,6 +138,31 @@ export function App() {
   });
   const [updateReady, setUpdateReady] = useState<ServiceWorkerRegistration | null>(null);
   const generationId = useRef(0);
+
+  // Pick one transition per route change: tabs slide in the direction of travel,
+  // everything else arrives with a small bubbly pop. The first paint is still,
+  // so the landing view never competes with its own entrance animation.
+  const firstPaint = useRef(true);
+  const navigation = useRef({ path, stage: tabIndex(path), direction: "none" });
+  if (navigation.current.path !== path) {
+    const stage = tabIndex(path);
+    const previous = navigation.current.stage;
+    const direction =
+      stage >= 0 && previous >= 0 && stage !== previous
+        ? stage > previous
+          ? "forward"
+          : "back"
+        : "pop";
+    navigation.current = { path, stage, direction };
+    firstPaint.current = false;
+  }
+  const routeDirection = firstPaint.current ? "none" : navigation.current.direction;
+
+  // A new screen always starts at its top; otherwise a long list leaves the
+  // next page scrolled halfway down and the fixed tab bar looks misplaced.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [path]);
 
   const showOnboarding = replayOnboarding || !settings.onboardingDone;
 
@@ -456,7 +491,12 @@ export function App() {
 
   return (
     <div className={`app-shell ${showTabs ? "has-tabs" : ""}`}>
-      {content}
+      <div
+        key={path}
+        className={`route-stage is-${routeDirection}`}
+      >
+        {content}
+      </div>
 
       {loading ? (
         <div className="generation-overlay" role="dialog" aria-modal="true" aria-label={t("home.generating")}>

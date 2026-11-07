@@ -111,17 +111,9 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
     <div className="home-screen">
       <BubbleBackdrop />
       <header className="screen-header home-header">
-        <div className="brand">
-          <span className="brand-mark" aria-hidden="true">
-            <span className="brand-grid">
-              {Array.from({ length: 4 }, (_, index) => (
-                <span key={index} className={index === 2 ? "is-lit" : ""} />
-              ))}
-            </span>
-          </span>
-          <div className="brand-copy">
-            <h1>{CREDITS.appName}</h1>
-          </div>
+        <div>
+          <p className="screen-eyebrow">{t("nav.home")}</p>
+          <h1>{CREDITS.appName}</h1>
         </div>
         <div className="home-header-actions">
           <button

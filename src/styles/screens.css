@@ -87,22 +87,14 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: calc(100dvh - (var(--tab-height) + var(--safe-bottom) + 26px));
+  min-height: calc(100dvh - var(--shell-gutter));
 }
 
 .home-header {
   flex: none;
-  align-items: center;
+  align-items: flex-start;
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.brand-mark,
 .about-mark,
 .welcome-mark {
   display: grid;
@@ -136,23 +128,18 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
 }
 
-.brand-copy h1 {
-  font-size: clamp(1.45rem, 5vw, 1.9rem);
-  letter-spacing: -0.04em;
-  line-height: 1;
-}
-
 .home-header-actions {
   display: flex;
   align-items: center;
   gap: 7px;
+  padding-top: 2px;
 }
 
 .lang-chip {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  min-height: 36px;
+  min-height: 34px;
   padding: 0 11px;
   border-radius: 999px;
   border: 1px solid var(--line);
@@ -160,7 +147,7 @@
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   color: var(--ink-2);
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   font-weight: 850;
   letter-spacing: 0.02em;
   transition: background 160ms var(--ease-out), color 160ms var(--ease-out);
@@ -186,7 +173,7 @@
   padding: 10px clamp(16px, 4vw, 34px) 34px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 14px;
 }
 
@@ -204,9 +191,9 @@
   align-items: center;
   gap: 16px;
   width: 100%;
-  min-height: 132px;
-  padding: clamp(18px, 3vw, 26px);
-  border-radius: 26px;
+  min-height: 120px;
+  padding: clamp(18px, 3vw, 24px);
+  border-radius: 24px;
   border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
   background:
     radial-gradient(120% 150% at 0 0, rgba(255, 255, 255, 0.22), transparent 58%),
@@ -230,8 +217,8 @@
 .play-card-icon {
   display: grid;
   place-items: center;
-  width: 54px;
-  height: 54px;
+  width: 50px;
+  height: 50px;
   flex: none;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.18);
@@ -246,9 +233,9 @@
 }
 
 .play-card-copy strong {
-  font-size: clamp(1.5rem, 4.4vw, 1.9rem);
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
   font-weight: 850;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.03em;
   line-height: 1.05;
 }
 
@@ -486,7 +473,9 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  padding: 24px 0 8px;
+  width: min(100%, var(--screen-w, 1080px));
+  margin: 0 auto;
+  padding: 24px clamp(16px, 4vw, 34px) 8px;
   color: var(--ink-3);
   font-size: 0.66rem;
   font-weight: 650;
@@ -525,7 +514,7 @@
 .about-screen,
 .import-screen {
   position: relative;
-  min-height: 100dvh;
+  min-height: calc(100dvh - var(--shell-gutter));
 }
 
 .daily-main,
@@ -1078,7 +1067,7 @@
 
 .pack-detail-screen {
   position: relative;
-  min-height: 100dvh;
+  min-height: calc(100dvh - var(--shell-gutter));
 }
 
 .pack-detail-header {
@@ -1378,7 +1367,7 @@
 
 .lesson-screen {
   position: relative;
-  min-height: 100dvh;
+  min-height: calc(100dvh - var(--shell-gutter));
 }
 
 .lesson-top {
@@ -3792,12 +3781,6 @@
 }
 
 @media (max-width: 600px) {
-  .brand-mark {
-    width: 46px;
-    height: 46px;
-    border-radius: 15px;
-  }
-
   .brand-grid {
     width: 23px;
     height: 23px;

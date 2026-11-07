@@ -87,6 +87,9 @@
   --tab-height: 56px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* Space the fixed tab bar needs below the content; every screen subtracts it
+     so short pages never grow a scrollbar and shift the bar sideways. */
+  --shell-gutter: calc(var(--tab-height) + var(--safe-bottom) + 26px);
   --maxw: 1180px;
   /* One page frame for every content screen: header and body share this
      width, so the title never shifts when you change tabs. */
