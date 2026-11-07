@@ -2,6 +2,14 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.4.3] — 2026-11-07
+
+### Changed
+
+- **Variant clues now read as part of the board.** X-Sudoku marks its diagonals with a soft wash instead of a border on every cell. Windoku tints its four windows and draws one hairline per window instead of a floating frame. Killer cage walls are 1.5px with square joins and smaller, lighter sums. Thermo lines are thinner with butt caps and smaller bulbs, and the gutter links match the stroke exactly, so nothing looks like a pipe with joints.
+- **High contrast strengthens the clue, not the layout.** Diagonals and windows use a stronger wash, windows a 2px hairline, and cage walls their full rule colour; the geometry is unchanged.
+- **The share card uses the same weights and the clay thermo colour**, so the exported image matches what is on screen.
+
 ## [1.4.2] — 2026-11-07
 
 ### Changed
