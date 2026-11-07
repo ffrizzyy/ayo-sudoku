@@ -2,6 +2,28 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.4.0] — 2026-11-07
+
+Every puzzle type gets its own trophy, Stats learns to count types as well as tiers, and Home settles into a single Play card.
+
+### Added
+
+- **Variant achievements.** Six new trophies bring the list to 22: “Both ways” (X-Sudoku), “Extra windows” (Windoku), “Cage breaker” (Killer), “Rising line” (Thermo), “Small world” (a 4×4 or 6×6 win) and “Every flavour” (win all five types). Results now remember their variant, and results stored before this release count as Classic because the type was never recorded.
+- **Achievement rules module.** `src/app/achievements.ts` owns the ordered list and the pure `newlyUnlocked` rules, with unit tests covering variant, legacy-result, loss and mini-board cases. On launch the app also backfills anything the stored results already prove, so earlier 4×4 and 6×6 wins unlock “Small world” straight away.
+- **By puzzle type on Stats.** A second breakdown beside “By difficulty” lists games and best time for Classic, X-Sudoku, Windoku, Killer and Thermo. Recent games name the type first (`Killer · Medium`) and the mode underneath.
+- **Puzzles card in Settings.** The importer now opens from Settings → Puzzles, keeping one obvious entry point after leaving Home.
+
+### Changed
+
+- **Home keeps only Play and Continue.** The Daily, Packs, Mini and Import shortcut cards are gone; Daily and Packs remain tabs, Mini is a board size in the Play sheet, and Import moved to Settings. With no save, the Play card spans the shared frame on desktop.
+- The Continue card names the saved puzzle as `type · tier · mode`, omitting Classic and the plain classic mode.
+- Stats gives the two breakdowns their own column beside a chart that now stretches to match, and widens the row label column on phones so `X-Sudoku` stays on one line.
+- The shared `VARIANTS` and `NINE_ONLY` lists live in `src/app/variants.ts`, used by both Home and Stats.
+
+### Removed
+
+- The Home quick-card styles (`.home-links`, `.quick-*`) and the `home.dailyCard`, `home.packsCard`, `home.miniTitle` and `home.continueSubtitle` copy keys in English and Indonesian.
+
 ## [1.3.0] — 2026-11-07
 
 Thermo Sudoku arrives: rising lines with a bulb at one end, a line-aware solver and generation that starts from a solution.

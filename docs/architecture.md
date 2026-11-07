@@ -15,7 +15,7 @@ flowchart TD
     subgraph App["App layer"]
         Router["App.tsx hash router + game launch"]
         Settings["app/settings.tsx"]
-        Data["app/data.tsx (stats, streaks, achievements)"]
+        Data["app/data.tsx (stats, streaks)"]
         Storage["app/storage.ts (versioned localStorage)"]
         GeneratorHook["app/useGenerator.ts"]
         Content["app/packs.ts, app/lessons.ts, app/daily.ts"]
@@ -56,11 +56,11 @@ The router is a small `hashchange` hook in `src/App.tsx`. Hash routing keeps the
 
 | Route | Screen |
 | --- | --- |
-| `#/` | Home: mode, tier, size, continue card |
+| `#/` | Home: one Play card, then Continue |
 | `#/daily` | Daily puzzle, streak and calendar |
 | `#/packs`, `#/pack/:id` | Pack list and detail |
 | `#/learn`, `#/lesson/:id` | Lesson list and lesson |
-| `#/stats` | Stats, records and achievements |
+| `#/stats` | Stats, records, per-type breakdown and achievements |
 | `#/settings` | Preferences and data tools |
 | `#/about` | About, credits and licenses |
 | `#/import`, `#/import/:code` | Share-code and grid import |
@@ -83,7 +83,7 @@ Board mutations produce one command. Undo moves the cursor back and applies the 
 
 ## Persistence
 
-All data lives in `localStorage` under versioned `ayo.*` keys. `storage.ts` owns reading, writing, backup and restore. Stats, daily history and pack progress are derived when a game finishes, then stored separately. `DataProvider` exposes the derived view to screens.
+All data lives in `localStorage` under versioned `ayo.*` keys. `storage.ts` owns reading, writing, backup and restore. Stats, daily history and pack progress are derived when a game finishes, then stored separately. `DataProvider` exposes the derived view to screens; `app/achievements.ts` holds the pure rules and the ordered achievement list.
 
 If `localStorage` is full or blocked, writes fail silently and the in-memory session continues; the UI stays usable. The Settings → Data export produces a single JSON backup with a schema version, so a future migration can accept old backups.
 

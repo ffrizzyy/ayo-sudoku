@@ -25,14 +25,15 @@ Ayo Sudoku! is a local-first Sudoku app that feels at home on a phone. There are
 | **Challenge** | Fewer lives, no reveals, higher stakes. |
 | **Packs** | 24 handcrafted puzzles in three star-gated packs, credited to ffrizzy. |
 | **Learn** | Ten short lessons from scanning to advanced chains, each with practice. |
-| **Import** | Paste a share code or an 81-character grid to play someone else's puzzle. |
+| **Import** | Paste a share code or an 81-character grid to play someone else's puzzle. Opens from Settings → Puzzles. |
 
 ### Details that matter
 
 - **Pencil marks and colors.** Corner marks, center marks, and a color-marking palette.
+- **Two-action home.** Play opens the setup sheet, Continue resumes the latest save; Daily and Packs live in the tab bar rather than as duplicate cards.
 - **Logic hints.** Nudges, pointers and reveals explain the next technique instead of just filling a cell.
 - **Undo and redo.** Every board change is a command, so history is exact.
-- **Stars, stats and streaks.** Per-tier records, mistake rates, daily calendar and achievements.
+- **Stars, stats and streaks.** Per-tier and per-type records, mistake rates, a daily calendar and 22 achievements, including one for every puzzle type and one for all five.
 - **Accessibility.** Keyboard-first board, large text, high contrast, color-vision-friendly digits, left-handed layout, reduced motion and optional sound/haptics.
 - **Bilingual.** Full English and Indonesian UI, including generated puzzle notes and lessons.
 - **PWA.** Installable from the Home header or Settings at any time, offline-ready, with an update banner and a kill switch for bad releases.
@@ -96,7 +97,7 @@ src/
   main.tsx    providers, error boundary, console credit
 public/       manifest, icons, service worker, theme bootstrap, headers
 docs/         architecture, ADRs, pack format
-tests/        engine tests
+tests/        engine, storage and achievement tests
 ```
 
 See [docs/architecture.md](docs/architecture.md) for the data flow and layer rules.
