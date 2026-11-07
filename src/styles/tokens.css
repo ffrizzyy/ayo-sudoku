@@ -52,8 +52,8 @@
   --board-rule: #c7c7d6;
   /* Killer cage walls: quieter than --board-rule so they sit under the block grid. */
   --cage-rule: #8a8aa3;
-  /* Thermo lines: a warm tone that reads on the cell and under the digit. */
-  --thermo-rule: #b07b5e;
+  /* Thermo lines: a warm clay that reads on the cell and under the digit. */
+  --thermo-rule: #b98a70;
   --board-box-gap: 8px;
   --board-cell-gap: 3px;
   --given-ink: #26262b;
@@ -123,7 +123,7 @@
   --board-given: #26262a;
   --board-rule: #3c3c48;
   --cage-rule: #6a6a80;
-  --thermo-rule: #c99477;
+  --thermo-rule: #c69b82;
   --given-ink: #f5f5fa;
   --peer-bg: color-mix(in srgb, var(--accent) 15%, #1d1d20);
   --same-bg: color-mix(in srgb, var(--accent) 42%, #1d1d20);

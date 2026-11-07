@@ -95,6 +95,10 @@ export function Board({
     () => (spec.variant === "diagonal" ? new Set(geom.diagonals.flat()) : null),
     [spec.variant, geom],
   );
+  const windowCells = useMemo(
+    () => (spec.variant === "windoku" ? new Set(geom.windows.flat()) : null),
+    [spec.variant, geom],
+  );
   // Killer: which cage owns each cell, the sum shown in its first cell, and the
   // wall segments between cages. Walls are drawn in the gaps and centred there,
   // so a cage outline reads as one continuous line.
@@ -120,9 +124,9 @@ export function Board({
         // past the cell on both ends so it meets the horizontal walls exactly,
         // but stops at the board edge.
         walls.push({
-          left: `calc(${cellLeft(col)} + var(--cell-w) + ${gapH(col)} / 2 - 1px)`,
+          left: `calc(${cellLeft(col)} + var(--cell-w) + ${gapH(col)} / 2 - var(--cage-wall-w) / 2)`,
           top: `calc(${cellTop(row)} - ${edge(gapVBefore(row), row > 0)})`,
-          width: "2px",
+          width: "var(--cage-wall-w)",
           height: `calc(var(--cell-w) + ${edge(gapVBefore(row), row > 0)} + ${edge(
             gapV(row),
             row < spec.size - 1,
@@ -132,9 +136,9 @@ export function Board({
       const downCell = row < spec.size - 1 ? cell + spec.size : -1;
       if (downCell >= 0 && owner[downCell] !== owner[cell]) {
         walls.push({
-          top: `calc(${cellTop(row)} + var(--cell-w) + ${gapV(row)} / 2 - 1px)`,
+          top: `calc(${cellTop(row)} + var(--cell-w) + ${gapV(row)} / 2 - var(--cage-wall-w) / 2)`,
           left: `calc(${cellLeft(col)} - ${edge(gapHBefore(col), col > 0)})`,
-          height: "2px",
+          height: "var(--cage-wall-w)",
           width: `calc(var(--cell-w) + ${edge(gapHBefore(col), col > 0)} + ${edge(
             gapH(col),
             col < spec.size - 1,
@@ -364,6 +368,7 @@ export function Board({
                   completedCells?.has(cell) ? "is-complete" : "",
                   data.color ? "has-color" : "",
                   diagonalCells?.has(cell) ? "is-diagonal" : "",
+                  windowCells?.has(cell) ? "is-window" : "",
                   largeMarks ? "large-marks" : "",
                 ]
                   .filter(Boolean)
@@ -398,7 +403,7 @@ export function Board({
                     aria-hidden="true"
                     focusable="false"
                   >
-                    {mark.bulb ? <circle className="thermo-bulb" cx="50" cy="50" r="22" /> : null}
+                    {mark.bulb ? <circle className="thermo-bulb" cx="50" cy="50" r="16" /> : null}
                     <path className="thermo-line" d={mark.d} />
                   </svg>
                 ))}

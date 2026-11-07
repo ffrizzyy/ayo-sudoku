@@ -146,9 +146,9 @@ async function drawCard(puzzle: PuzzleDef, tierLabel: string, timeLabel: string,
   const thermos = puzzle.spec.variant === "thermo" ? puzzle.thermos : undefined;
   if (thermos?.length) {
     ctx.save();
-    ctx.strokeStyle = dark ? "rgba(235,235,245,0.4)" : "rgba(60,60,67,0.34)";
-    ctx.fillStyle = dark ? "rgba(235,235,245,0.28)" : "rgba(60,60,67,0.22)";
-    ctx.lineWidth = Math.max(2, cell * 0.085);
+    ctx.strokeStyle = dark ? "#C69B82" : "#B98A70";
+    ctx.fillStyle = dark ? "rgba(198, 155, 130, 0.5)" : "rgba(185, 138, 112, 0.46)";
+    ctx.lineWidth = Math.max(2, cell * 0.07);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     const centre = (index: number) => ({
@@ -159,7 +159,7 @@ async function drawCard(puzzle: PuzzleDef, tierLabel: string, timeLabel: string,
       if (line.length < 2) continue;
       const bulb = centre(line[0]);
       ctx.beginPath();
-      ctx.arc(bulb.x, bulb.y, cell * 0.22, 0, Math.PI * 2);
+      ctx.arc(bulb.x, bulb.y, cell * 0.16, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
       line.forEach((index, position) => {
@@ -181,8 +181,8 @@ async function drawCard(puzzle: PuzzleDef, tierLabel: string, timeLabel: string,
       for (const cellIndex of cage.cells) owner[cellIndex] = index;
       sums.set(Math.min(...cage.cells), cage.sum);
     });
-    ctx.strokeStyle = dark ? "#6A6A80" : "#8A8AA3";
-    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = dark ? "rgba(139, 139, 163, 0.62)" : "rgba(138, 138, 163, 0.58)";
+    ctx.lineWidth = 1.5;
     for (let index = 0; index < geom.cellCount; index++) {
       const row = geom.rowOf[index];
       const col = geom.colOf[index];
@@ -204,7 +204,7 @@ async function drawCard(puzzle: PuzzleDef, tierLabel: string, timeLabel: string,
       }
     }
     ctx.fillStyle = muted;
-    ctx.font = `800 ${Math.round(cell * 0.2)}px ui-rounded, 'Nunito', system-ui, sans-serif`;
+    ctx.font = `750 ${Math.round(cell * 0.18)}px ui-rounded, 'Nunito', system-ui, sans-serif`;
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
     for (const [cellIndex, sum] of sums) {
@@ -319,7 +319,7 @@ function MiniBoard({ puzzle }: { puzzle: PuzzleDef }) {
                 aria-hidden="true"
                 focusable="false"
               >
-                {mark.bulb ? <circle className="thermo-bulb" cx="50" cy="50" r="22" /> : null}
+                {mark.bulb ? <circle className="thermo-bulb" cx="50" cy="50" r="16" /> : null}
                 <path className="thermo-line" d={mark.d} />
               </svg>
             ))}
