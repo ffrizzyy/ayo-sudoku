@@ -111,9 +111,18 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
     <div className="home-screen">
       <BubbleBackdrop />
       <header className="screen-header home-header">
-        <div>
-          <p className="screen-eyebrow">{t("nav.home")}</p>
-          <h1>{CREDITS.appName}</h1>
+        <div className="home-title">
+          <span className="home-mark" aria-hidden="true">
+            <span className="brand-grid">
+              {Array.from({ length: 4 }, (_, index) => (
+                <span key={index} className={index === 2 ? "is-lit" : ""} />
+              ))}
+            </span>
+          </span>
+          <div>
+            <p className="screen-eyebrow">{t("nav.home")}</p>
+            <h1>{CREDITS.appName}</h1>
+          </div>
         </div>
         <div className="home-header-actions">
           <button
@@ -149,14 +158,6 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
 
       <main className="home-main">
         <section className={`home-hero ${latest ? "" : "is-solo"}`} aria-label={t("home.newGame")}>
-          <span className="home-mark" aria-hidden="true">
-            <span className="brand-grid">
-              {Array.from({ length: 4 }, (_, index) => (
-                <span key={index} className={index === 2 ? "is-lit" : ""} />
-              ))}
-            </span>
-          </span>
-
           <button type="button" className="play-card" onClick={() => setSetupOpen(true)}>
             <span className="play-card-icon">
               <Icon name="play" size={26} />

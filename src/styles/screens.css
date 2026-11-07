@@ -115,6 +115,13 @@
   margin: 0;
 }
 
+.home-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
 .brand-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -139,6 +146,9 @@
   align-items: center;
   gap: 7px;
   padding-top: 2px;
+  /* On narrow phones the chips drop below the title; keep them against the
+     page edge so the second row reads as a toolbar instead of a stray line. */
+  margin-left: auto;
 }
 
 .lang-chip {
@@ -471,32 +481,8 @@
     align-items: stretch;
   }
 
-  /* The mark sits over the Play card, the action it belongs to, rather than
-     floating between two cards. A solo Play card spans the row, so the mark
-     centres over the full width. */
-  .home-mark {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: center;
-  }
-
-  .play-card {
-    grid-column: 1;
-    grid-row: 2;
-  }
-
-  .continue-card {
-    grid-column: 2;
-    grid-row: 2;
-  }
-
-  .home-hero.is-solo .home-mark {
-    grid-column: 1 / -1;
-  }
-
   .home-hero.is-solo .play-card {
     grid-column: 1 / -1;
-    grid-row: 2;
   }
 }
 
@@ -3813,6 +3799,12 @@
 }
 
 @media (max-width: 600px) {
+  .home-mark {
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
+  }
+
   .brand-grid {
     width: 23px;
     height: 23px;

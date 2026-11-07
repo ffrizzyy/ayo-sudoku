@@ -12,7 +12,7 @@ The shell also changed with no motion at all, which made the jumps feel like lay
 
 ## Decision
 
-- Home uses the same `.screen-header` contract as Daily, Packs, Learn, Stats, Settings, About and Import: a `nav.home` eyebrow, the app name as the `h1`, the language, install and settings chips on the right, and body content that begins below the header (see the 1.4.4 amendment for the centred hero). The brand mark is removed from the header.
+- Home uses the same `.screen-header` contract as Daily, Packs, Learn, Stats, Settings, About and Import: a `nav.home` eyebrow, the app name as the `h1`, the language, install and settings chips on the right, and body content that begins below the header (see the 1.4.4 and 1.4.5 amendments for the hero and the brand lockup). The brand mark left the header in 1.4.2 and returned beside the title in 1.4.5.
 - `--shell-gutter` (tab height + safe-area bottom + 26px) is the one bottom inset. `.app-shell.has-tabs` pads by it and every tabbed screen subtracts it from `100dvh`, so short screens fill the viewport without growing a scrollbar.
 - `html` reserves the scrollbar lane with `scrollbar-gutter: stable`. The fixed tab bar is centred in the same lane on every screen.
 - A route change scrolls to the top in a layout effect, before paint.
@@ -29,7 +29,15 @@ The shell also changed with no motion at all, which made the jumps feel like lay
 
 The shared header, page width and tab-bar contract stay exactly as decided above. The body of Home is a landing hero again:
 
-- The hero is vertically centred in the space between the header and the footer, so Play sits around the middle of the viewport instead of directly under the title. `justify-content: safe center` falls back to top alignment when the hero is taller than the available space, so a short phone with large text can still scroll to the top of the mark.
-- The 52px brand tile returns in the body, not in the header. It sits above the Play card and shares the `.about-mark`/`.welcome-mark` tile style.
-- On desktop the hero is a two-column grid (`1.1fr 0.9fr`). The mark is placed in the first column above Play, so it centres over the action it belongs to rather than floating between Play and Continue. When there is no save, Play spans both columns and the mark centres over the full row.
+- The hero is vertically centred in the space between the header and the footer, so Play sits around the middle of the viewport instead of directly under the title. `justify-content: safe center` falls back to top alignment when the hero is taller than the available space, so a short phone with large text can still scroll to the top.
+- The 52px brand tile returns, and sits above the Play card in this release. The 1.4.5 amendment moves it beside the title; the tile style stays the same.
+- On desktop the hero is a two-column grid (`1.1fr 0.9fr`). When there is no save, Play spans both columns.
 - Header and footer keep the full `--screen-w` width, so the title, action chips and footer still line up with the other tabs. Only the hero column is centred.
+
+## Amendment (1.4.5): the brand mark joins the title
+
+The mark moves out of the hero and back beside the `h1`, so the title is a lockup: a 52px tile (46px on phones) + a 12px gap + the eyebrow/title block. The tile reuses the `.about-mark`/`.welcome-mark` style and stays `aria-hidden`.
+
+- The hero keeps the 1.4.4 centring rules; only the mark leaves it, so the Play card is the single hero row again on both breakpoints.
+- The header title block and the action chips stay on one row whenever they fit. Below roughly 430px the three chips cannot share the row with the lockup, so `.screen-header` wraps them onto a second row. `.home-header-actions` carries `margin-left: auto` so that row is flush with the page's right edge instead of hanging under the logo. The chips remain in the same DOM order and the tab bar does not move.
+- The mark is decoration only; it adds no tab stop, and the `h1` keeps the accessible name of the screen.
