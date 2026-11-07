@@ -2,6 +2,14 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.4.2] — 2026-11-07
+
+### Changed
+
+- **Home joins the shared page frame.** Its header now uses the same eyebrow, title size, gutters and action height as every other screen, the Play card is sized like the rest of the cards, and content starts at the same top edge instead of floating in the middle of the viewport. The oversized brand mark is gone.
+- **The tab bar no longer moves between screens.** The root reserves the scrollbar lane, every tabbed screen subtracts the same bottom shell gutter, and a route change returns the page to the top. Home and the content screens now keep the bar in exactly the same place.
+- **Page transitions.** Moving between tabs slides the new screen in from the direction of travel; opening Settings, About, Import, a pack, a lesson or a game arrives with a short bubbly pop. The first paint stays still, and the existing reduced-motion switch keeps the change instant.
+
 ## [1.4.1] — 2026-11-07
 
 ### Changed
