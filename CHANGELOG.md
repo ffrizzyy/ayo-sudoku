@@ -2,6 +2,12 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.4.5] — 2026-11-07
+
+### Changed
+
+- **The brand mark sits beside the Home title.** The 52px tile (46px on phones) forms a lockup with the eyebrow and `h1` instead of floating above the Play card, so the title reads as one block and the hero is Play alone again. When the language, install and settings chips cannot share the title row on narrow phones, they wrap to a second row that stays flush with the right edge instead of hanging under the logo.
+
 ## [1.4.4] — 2026-11-07
 
 ### Changed
