@@ -86,10 +86,10 @@ export function Home({ onPlay, onDaily, onResume, onNavigate, installed, onInsta
     .filter(Boolean)
     .join(" · ");
 
-  /** The resume card names the puzzle the same way the game subline does. */
+  /** The resume card always names the type so a bare tier is never ambiguous. */
   const latestLabel = latest
     ? [
-        latest.puzzle.spec.variant !== "classic" ? t(`variant.${latest.puzzle.spec.variant}`) : "",
+        t(`variant.${latest.puzzle.spec.variant}`),
         t(`tier.${latest.puzzle.tier}`),
         latest.mode !== "classic" ? t(`mode.${latest.mode}`) : "",
       ]

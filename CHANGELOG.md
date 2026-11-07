@@ -2,6 +2,12 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.4.1] — 2026-11-07
+
+### Changed
+
+- The Home Continue card always names the puzzle type, so a classic save reads `Classic · Hard` instead of a bare tier. The in-game subline still omits Classic.
+
 ## [1.4.0] — 2026-11-07
 
 Every puzzle type gets its own trophy, Stats learns to count types as well as tiers, and Home settles into a single Play card.
