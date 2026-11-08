@@ -457,20 +457,31 @@ export function Board({
       ))}
       {spec.variant === "windoku" && geom.windows.length ? (
         <span className="board-windows" aria-hidden="true">
-          {geom.windows.map((window, index) => (
-            <span
-              key={index}
-              className="board-window"
-              style={
-                {
-                  ["--w-box-x" as string]: Math.floor(geom.colOf[window[0]] / spec.boxCols),
-                  ["--w-cell-x" as string]: geom.colOf[window[0]] % spec.boxCols,
-                  ["--w-box-y" as string]: Math.floor(geom.rowOf[window[0]] / spec.boxRows),
-                  ["--w-cell-y" as string]: geom.rowOf[window[0]] % spec.boxRows,
-                } as React.CSSProperties
-              }
-            />
-          ))}
+          {geom.windows.map((window, index) => {
+            const first = window[0];
+            const last = window[window.length - 1];
+            const startCol = geom.colOf[first];
+            const startRow = geom.rowOf[first];
+            const endCol = geom.colOf[last];
+            const endRow = geom.rowOf[last];
+            return (
+              <span
+                key={index}
+                className="board-window"
+                style={
+                  {
+                    // The window crosses a box gutter, which is wider than a cell
+                    // gap, so the span is measured from the first cell's left/top
+                    // edge to the last cell's right/bottom edge.
+                    ["--w-left" as string]: cellGeo.cellLeft(startCol),
+                    ["--w-top" as string]: cellGeo.cellTop(startRow),
+                    ["--w-width" as string]: `calc(${cellGeo.cellLeft(endCol)} + var(--cell-w) - ${cellGeo.cellLeft(startCol)})`,
+                    ["--w-height" as string]: `calc(${cellGeo.cellTop(endRow)} + var(--cell-w) - ${cellGeo.cellTop(startRow)})`,
+                  } as React.CSSProperties
+                }
+              />
+            );
+          })}
         </span>
       ) : null}
       {cageInfo?.walls.length ? (

@@ -50,10 +50,14 @@
   --board-given: #f4f4f8;
   /* The gutter between the nine 3x3 boxes; deliberately stronger than --board-bg. */
   --board-rule: #c7c7d6;
-  /* Killer cage walls: quieter than --board-rule so they sit under the block grid. */
-  --cage-rule: #8a8aa3;
-  /* Thermo lines: a warm clay that reads on the cell and under the digit. */
-  --thermo-rule: #b98a70;
+  /* Killer cage walls: a quiet solid, a step under --board-rule so cages read
+     as regions without competing with the block grid. */
+  --cage-rule: #b2b2c4;
+  /* Thermo lines: a pale tint of the accent, so the thermometer reads as part
+     of the cell rather than a drawn-on path. Kept opaque: the slices and the
+     gutter links overlap by a hairline, and alpha would show those seams. */
+  --thermo-rule: color-mix(in srgb, var(--accent) 24%, var(--board-cell));
+  --thermo-bulb: color-mix(in srgb, var(--accent) 40%, var(--board-cell));
   --board-box-gap: 8px;
   --board-cell-gap: 3px;
   --given-ink: #26262b;
@@ -70,7 +74,9 @@
   --conflict-bg: color-mix(in srgb, var(--danger) 18%, var(--surface));
   --hint-bg: color-mix(in srgb, var(--warning) 20%, var(--surface));
   --hint-unit-bg: color-mix(in srgb, var(--warning) 10%, var(--surface));
-  --complete-bg: color-mix(in srgb, var(--success) 18%, var(--surface));
+  /* Completion flash: a pulse of the user's accent that fades back out, layered
+     over whatever the cell already shows. */
+  --complete-flash: color-mix(in srgb, var(--accent) 26%, transparent);
 
   --radius-xs: 8px;
   --radius-sm: 12px;
@@ -122,8 +128,9 @@
   --board-cell: #1d1d20;
   --board-given: #26262a;
   --board-rule: #3c3c48;
-  --cage-rule: #6a6a80;
-  --thermo-rule: #c69b82;
+  --cage-rule: #5c5c72;
+  --thermo-rule: color-mix(in srgb, var(--accent) 34%, var(--board-cell));
+  --thermo-bulb: color-mix(in srgb, var(--accent) 52%, var(--board-cell));
   --given-ink: #f5f5fa;
   --peer-bg: color-mix(in srgb, var(--accent) 15%, #1d1d20);
   --same-bg: color-mix(in srgb, var(--accent) 42%, #1d1d20);
@@ -134,7 +141,7 @@
   --conflict-bg: color-mix(in srgb, var(--danger) 30%, #1d1d20);
   --hint-bg: color-mix(in srgb, var(--warning) 30%, #1d1d20);
   --hint-unit-bg: color-mix(in srgb, var(--warning) 15%, #1d1d20);
-  --complete-bg: color-mix(in srgb, var(--success) 28%, #1d1d20);
+  --complete-flash: color-mix(in srgb, var(--accent) 36%, transparent);
 
   --shadow-card: 0 14px 34px rgba(0, 0, 0, 0.42), 0 1px 0 rgba(255, 255, 255, 0.03) inset;
   --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.32);
@@ -200,7 +207,9 @@
   --board-given: #eeeeF3;
   --board-rule: #a7a7ba;
   --cage-rule: #5f5f75;
-  --thermo-rule: #8a5b40;
+  --thermo-rule: color-mix(in srgb, var(--accent) 56%, var(--board-cell));
+  --thermo-bulb: color-mix(in srgb, var(--accent) 76%, var(--board-cell));
+  --complete-flash: color-mix(in srgb, var(--accent) 40%, transparent);
 }
 [data-theme="dark"][data-contrast="high"] {
   --ink-2: rgba(255, 255, 255, 0.86);
@@ -211,7 +220,9 @@
   --board-given: #303036;
   --board-rule: #5c5c6b;
   --cage-rule: #8b8ba3;
-  --thermo-rule: #d8a98b;
+  --thermo-rule: color-mix(in srgb, var(--accent) 66%, var(--board-cell));
+  --thermo-bulb: color-mix(in srgb, var(--accent) 86%, var(--board-cell));
+  --complete-flash: color-mix(in srgb, var(--accent) 52%, transparent);
 }
 
 [data-cvd="deuteranopia"],

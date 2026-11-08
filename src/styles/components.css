@@ -702,7 +702,7 @@
   --cell-w: calc((var(--box-w) - (var(--cell-cols) - 1) * var(--board-cell-gap)) / var(--cell-cols));
   --box-pitch: calc(var(--box-w) + var(--board-box-gap));
   --cell-pitch: calc(var(--cell-w) + var(--board-cell-gap));
-  --thermo-w: max(2px, calc(var(--cell-w) * 0.07));
+  --thermo-w: max(2px, calc(var(--cell-w) * 0.08));
   --cage-wall-w: 1.5px;
 }
 
@@ -802,15 +802,11 @@
 .board-window {
   position: absolute;
   box-sizing: border-box;
-  width: var(--box-w);
-  height: var(--box-w);
-  left: calc(
-    var(--board-box-gap) + var(--w-box-x) * var(--box-pitch) + var(--w-cell-x) * var(--cell-pitch)
-  );
-  top: calc(
-    var(--board-box-gap) + var(--w-box-y) * var(--box-pitch) + var(--w-cell-y) * var(--cell-pitch)
-  );
-  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  left: var(--w-left);
+  top: var(--w-top);
+  width: var(--w-width);
+  height: var(--w-height);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   border-radius: clamp(4px, 1.4cqw, 10px);
 }
 
@@ -832,12 +828,10 @@
 .cage-wall {
   position: absolute;
   display: block;
-  background: color-mix(in srgb, var(--cage-rule) 64%, transparent);
-  border-radius: 0;
-}
-
-[data-contrast="high"] .cage-wall {
+  /* Opaque, so a wall keeps the same weight over a cell gap and over the wider
+     box gutter, and T-junctions do not darken where two segments overlap. */
   background: var(--cage-rule);
+  border-radius: 0;
 }
 
 .cage-sum {
@@ -868,16 +862,15 @@
 .thermo-line {
   fill: none;
   stroke: var(--thermo-rule);
-  stroke-width: 7;
-  stroke-linecap: butt;
+  stroke-width: 8;
+  stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 /* The bulb sits under the digit and the pencil marks, so it is larger than the
-   glyph and translucent: the clue stays readable without hiding what is on top
-   of it. */
+   glyph and soft: the clue stays readable without hiding what is on top of it. */
 .thermo-bulb {
-  fill: color-mix(in srgb, var(--thermo-rule) 48%, transparent);
+  fill: var(--thermo-bulb);
   stroke: none;
 }
 
@@ -1080,9 +1073,18 @@
 }
 
 @keyframes complete-cell {
-  0% { background: var(--board-cell); transform: scale(1); }
-  35% { background: var(--complete-bg); transform: scale(1.06); }
-  100% { background: var(--complete-bg); transform: scale(1); }
+  0% {
+    background-image: linear-gradient(transparent, transparent);
+    transform: scale(1);
+  }
+  35% {
+    background-image: linear-gradient(var(--complete-flash), var(--complete-flash));
+    transform: scale(1.06);
+  }
+  100% {
+    background-image: linear-gradient(transparent, transparent);
+    transform: scale(1);
+  }
 }
 
 /* ---------- Number pad ---------- */
@@ -1287,7 +1289,7 @@
   bottom: -1.5px;
   right: -1.5px;
   width: 1.5px;
-  background: color-mix(in srgb, var(--cage-rule) 64%, transparent);
+  background: var(--cage-rule);
 }
 
 .share-mini-cell.cage-down::before {
@@ -1297,7 +1299,7 @@
   right: -1.5px;
   bottom: -1.5px;
   height: 1.5px;
-  background: color-mix(in srgb, var(--cage-rule) 64%, transparent);
+  background: var(--cage-rule);
 }
 
 .share-code-block {

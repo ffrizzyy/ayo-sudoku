@@ -27,3 +27,14 @@ Every variant clue is now drawn with the quietest shape that still names the reg
 - Region geometry stays derived from `--box-w`, `--cell-w`, `--box-pitch` and `--cell-pitch`; no renderer measures the DOM, so the overlays scale with the board at every breakpoint.
 - A future variant should start from these weights: a wash for a region, a hairline for a boundary, a gutter rule for a partition, and a single-width stroke for a path. Adding a second outline or a shadow is a regression, not an emphasis.
 - High-contrast behaviour is part of the contract, not an afterthought: a 10% wash is not a reliable cue for a low-vision player.
+
+## Amendment (1.4.6): overlays follow the cells, not the box grid
+
+The 1.4.3 pass tuned weights but kept three geometric shortcuts that did not survive real boards.
+
+- **Windoku windows cross a box gutter.** Each window spans three cells but only two cell gaps: the third step is the 8px box gutter, so sizing the frame from `--box-w` (three cells plus two cell gaps) left it ~5px short and cut through the window's last row and column. The frame is now measured from the first cell's left/top edge to the last cell's right/bottom edge, so it wraps the tinted block exactly. The hairline rises to 30% accent and keeps the cell radius.
+- **Killer walls are opaque.** At 64% alpha a wall changed apparent weight between the 3px cell gap and the 8px box gutter, and collinear or T-junction segments darkened where they overlapped. Walls now use `--cage-rule` at full opacity; the token itself is retuned (light `#b2b2c4`, dark `#5c5c72`) so the line stays quiet. Geometry is unchanged at 1.5px.
+- **Thermo is painted into the cell.** The clay line read as a second colour system. Thermo now uses the accent at 24% over the cell (34% dark) with a 40% bulb (52% dark), an 8% stroke and round caps. The line and bulb stay under the digit and marks, so the clue looks embedded in the cell background. High contrast keeps the geometry and raises the mixes to 56%/76% light and 66%/86% dark. Tokens stay opaque because slices and gutter links overlap by a hairline; alpha would show those seams.
+- **Completion is an accent pulse, not a state.** A completed row, column, box or digit flashes `--complete-flash` (accent at 26% light, 36% dark, stronger under high contrast) and animates back to transparent, layered as a `background-image` gradient over whatever the cell already shows. A cell never keeps a completion fill after the animation.
+
+The share card reads the same tokens and therefore follows automatically.

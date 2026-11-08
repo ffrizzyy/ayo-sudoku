@@ -2,6 +2,17 @@
 
 All notable changes to Ayo Sudoku! are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.4.6] — 2026-11-08
+
+### Changed
+
+- **Variant clues now sit inside the cells.** Windoku measures each window from its first cell's top-left to its last cell's bottom-right, so the hairline wraps the four tinted 3×3 blocks instead of cutting through a row and column. Killer cage walls are fully opaque, so a wall keeps the same weight over the 3px cell gap and the wider box gutter and no longer darkens where two walls meet. Thermo drops the clay colour for a soft accent wash: an 8% line with round caps and a translucent bulb, painted under the digits.
+- **Completion flashes the accent, then clears.** A finished row, column, box or digit pulses the player's accent and fades back to the cell, instead of holding a green (and, in dark mode, muddy brown) fill. A second completion inside the first flash no longer cancels the clear timer and leaves cells tinted.
+
+### Fixed
+
+- A completion ripple whose timer was cleared by the next completion now always ends; the stale cleanup effect is gone.
+
 ## [1.4.5] — 2026-11-07
 
 ### Changed

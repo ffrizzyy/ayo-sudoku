@@ -729,14 +729,6 @@ export function GameScreen({ initial, onQuitHome, onNextPuzzle, exitLabel }: Gam
     if (session.mode === "daily" && won) push(t("daily.solvedToday"), "success");
   }, [session, par, recordResult, push, t]);
 
-  // Clear completion ripple.
-  useEffect(() => {
-    if (!completedCells.size) return;
-    return () => {
-      if (completedTimer.current) window.clearTimeout(completedTimer.current);
-    };
-  }, [completedCells]);
-
   const selectCell = useCallback(
     (cell: number, extend: boolean) => {
       if (sessionRef.current.status !== "playing") return;
