@@ -938,6 +938,20 @@
   animation: complete-cell 700ms var(--ease-out) both;
 }
 
+/* The tint is an overlay rather than the cell background: animating its opacity
+   fades smoothly (a background-image gradient flips between keyframes in
+   Chromium) and it leaves the cell's own state colour untouched underneath. */
+.cell.is-complete::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: var(--complete-flash);
+  pointer-events: none;
+  animation: complete-tint 700ms var(--ease-out) both;
+}
+
 .cell.is-selected {
   z-index: 2;
   background: var(--selected-bg);
@@ -1073,18 +1087,15 @@
 }
 
 @keyframes complete-cell {
-  0% {
-    background-image: linear-gradient(transparent, transparent);
-    transform: scale(1);
-  }
-  35% {
-    background-image: linear-gradient(var(--complete-flash), var(--complete-flash));
-    transform: scale(1.06);
-  }
-  100% {
-    background-image: linear-gradient(transparent, transparent);
-    transform: scale(1);
-  }
+  0% { transform: scale(1); }
+  35% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+@keyframes complete-tint {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* ---------- Number pad ---------- */
